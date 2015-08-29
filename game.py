@@ -2,6 +2,8 @@ import os
 import time
 from random import random, randint, sample
 
+gameState = { 'currentRoom': 'boboRoom' }
+
 def i(s) :
     def _(*args,**kwargs) :
         print s
@@ -36,31 +38,25 @@ def play(*args,**kwargs) :
             curr_pos = (max(0,min(curr_pos[0]+1,game_width)),
                         max(0,min(curr_pos[1],game_width)))
 
-VERB_ACTIONS = {"smirk":i("Bobo smirks back at you"),
-                "talk":i("Bobo is a monkey. He can talk, but he won't talk to you."),
-                "play":play
-               }
-MISSING_NOUN = {   "smirk": i("Smirk at who?")
-                 , "talk": i("Talk to who?")
-                 , "play": i("With yourself?!")
-               }
 
+def parseCommand(command, actions):
+    legalVerbs = listOfAllVerbs(actions.keys())
+    legalNouns = set(PERSISTENT_NOUNS)
+    for verb in legalVerbs:
+        if verb in actions:
+            for noun in actions[verb]:
+                legalNouns.add(noun)
 
-def parseCommand(command):
-    verb = None
-    for v in VERB_ACTIONS.keys() :
-        if v in command.lower() :
-            verb = v
-            break
+    command = command.lower()
+    verb = 'none'
+    noun = 'none'
+    for word in command.split():
+        if word in legalVerbs:
+            verb = word
+        elif word in legalNouns:
+            noun = word
 
-    if verb is None :
-        return None
-
-    if "bobo" not in command.lower() :
-        print MISSING_NOUN[verb]()
-
-    return verb
-
+    return (verb, noun)
 
 def talkToBobo():
     boboStates = ['no', 'yes']
@@ -94,19 +90,95 @@ def talkToBobo():
     print "Fine, Bobo %s"%sample(boboActivities[youLikey],1)[0]
 
 
+def printAdjacentRoomInfo(adjacencies):
+    if len(adjacencies) == 0:
+        print "There are no adjacent rooms"
+
+    print "There are adjacent rooms %s" % ', '.join(dir for (dir,room) in adjacencies)
+
+def evaluateAction(cmd, room):
+    actions  = room['actions']
+
+    (verb, noun) = cmd
+    if verb in actions:
+        actions[verb][noun]()
+    elif verb in PERSISTENT_ACTIONS:
+        PERSISTENT_ACTIONS[verb](room, noun)
+    else:
+        print "Don't know how to do that..."
+
+def go(room, direction):
+    adjacencies = room['adjacent']
+    for (expectsDir, exitsTo) in adjacencies:
+        if(expectsDir == direction):
+            gameState['currentRoom'] = exitsTo
+            return
+
+    print "Can't go that way."
+
+PERSISTENT_VERBS = "go"
+PERSISTENT_NOUNS = ["north", "south", "west", "east"]
+PERSISTENT_ACTIONS = {"go": go}
+
+
+def listOfAllVerbs(currentVerbs):
+    res = currentVerbs
+    res.append(PERSISTENT_VERBS)
+    return res
 
 def gameLoop():
+    boboRoom = {}
+    boboRoom['description'] = "You are in a room with Bobo. There is nothing else but Bobo."
+    boboRoom['adjacent'] = [('north', 'playpenRoom')]
+    boboRoom['actions'] = \
+        {  "smirk":     {   'none': i('Smirk at who?')
+                          , 'bobo': i("Bobo smirks back at you")
+                        }
+         , "talk":      {   'none': i("Talk to who?")
+                          , 'bobo': i("Bobo is a monkey. He can talk, but he won't talk to you.")
+                        }
+         , "play":      {   'none': i("With yourself?!")
+                          , 'bobo': play
+                        }
+        }
+
+    playpenRoom = {}
+    playpenRoom['description'] = "You are in a Bobo's playpen.  It's sparse but it does have a big bouncy ball."
+    playpenRoom['adjacent'] = [['south', 'boboRoom']]
+    playpenRoom['actions'] = \
+        {  "bounce":     {   'none': i('Bounce what?')
+                          , 'ball': i("The ball bounces: what fun!")
+                        }
+         , "take":      {   'none': i("Take what?")
+                          , 'ball': i("You take the ball.")
+                        }
+        }
+
+
+
+    rooms = {}
+    rooms['boboRoom'] = boboRoom
+    rooms['playpenRoom'] = playpenRoom
+
+
     while True:
+        currentRoom    = rooms[gameState['currentRoom']]
+        currentActions = currentRoom['actions']
+        currentVerbs   = currentActions.keys()
+
         print
-        print "You are in a room with Bobo. There is nothing else but Bobo."
-        print "You can do things to Bobo.  Valid things include: %s" % ', '.join(VERB_ACTIONS.keys())
+        print
+        print
+        print currentRoom['description']
+        printAdjacentRoomInfo(currentRoom['adjacent'])
+        print "You can do things.  Valid things include: %s" % ', '.join(listOfAllVerbs(currentVerbs))
         print '>', 
         command = raw_input()
         print
-        action = parseCommand(command)
+        action = parseCommand(command, currentActions)
         if action == None:
             continue
-        VERB_ACTIONS[action]()
+        evaluateAction(action, currentRoom)
 
 
 gameLoop();
