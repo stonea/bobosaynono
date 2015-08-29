@@ -124,9 +124,9 @@ def talkToMan(gameState):
 def playpenDescription(room):
     print "You are in a Bobo's playpen.",
     if('ball' not in gameState['inventory']):
-        print "It's sparse, but it does have a big bouncy ball."
+        print "It's sparse, but it does have a big bouncy ball.  There is a passage to the south."
     else:
-        print "It's sparse and soulless. And now ball-less."
+        print "It's sparse and soulless. And now ball-less.  There is a passage to the south."
 
 def takeBall(gameState):
     gameState['inventory']['ball'] = None
@@ -219,8 +219,8 @@ def gameLoop():
 
     playpenRoom = {}
     playpenRoom['description'] = playpenDescription
-    playpenRoom['adjacent'] = [(['south'], 'boboRoom')]
-    playpenRoom['actions'] = \
+    playpenRoom['adjacent'] = [(['south', 'passage'], 'boboRoom')]
+    playpenRoom['actions'] = 
         {  "bounce":     {   'none': i('Bounce what?')
                           , 'ball': i("The ball bounces: what fun!")
                          }
