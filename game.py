@@ -220,7 +220,7 @@ def gameLoop():
     playpenRoom = {}
     playpenRoom['description'] = playpenDescription
     playpenRoom['adjacent'] = [(['south', 'passage'], 'boboRoom')]
-    playpenRoom['actions'] = 
+    playpenRoom['actions'] = \
         {  "bounce":     {   'none': i('Bounce what?')
                           , 'ball': i("The ball bounces: what fun!")
                          }
