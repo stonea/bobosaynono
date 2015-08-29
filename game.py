@@ -202,8 +202,8 @@ def listOfAllVerbs(currentVerbs):
 def gameLoop():
     boboRoom = {}
     boboRoom['description'] = i("You are in a room with Bobo. There is nothing else but Bobo.\n" 
-                              "There's a door behind you.")
-    boboRoom['adjacent'] = [  (['north'], 'playpenRoom')
+                              "There's a door behind you. There is a passage to the north.")
+    boboRoom['adjacent'] = [  (['north', 'passage', 'playpen'], 'playpenRoom')
                             , (['door', 'behind', 'backwards', 'outside'], 'outside')]
     boboRoom['actions'] = \
         {  "smirk":     {   'none': i('Smirk at who?')
