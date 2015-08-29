@@ -1,6 +1,7 @@
 import os
 import time
 from random import random, randint, sample
+from rpg import detect_enemy, fight, prompt
 
 gameState = { 'currentRoom': 'boboRoom' }
 
@@ -119,14 +120,16 @@ def go(room, direction):
 
     print "Can't go that way."
 
-PERSISTENT_VERBS = "go"
+PERSISTENT_VERBS = ["go","fight"]
 PERSISTENT_NOUNS = ["north", "south", "west", "east"]
-PERSISTENT_ACTIONS = {"go": go}
+PERSISTENT_ACTIONS = {"go": go,
+                      "fight":fight
+                     }
 
 
 def listOfAllVerbs(currentVerbs):
     res = currentVerbs
-    res.append(PERSISTENT_VERBS)
+    res.extend(PERSISTENT_VERBS)
     return res
 
 def gameLoop():
@@ -138,7 +141,7 @@ def gameLoop():
                           , 'bobo': i("Bobo smirks back at you")
                         }
          , "talk":      {   'none': i("Talk to who?")
-                          , 'bobo': i("Bobo is a monkey. He can talk, but he won't talk to you.")
+                          , 'bobo': talkToBobo
                         }
          , "play":      {   'none': i("With yourself?!")
                           , 'bobo': play
@@ -168,6 +171,11 @@ def gameLoop():
         currentRoom    = rooms[gameState['currentRoom']]
         currentActions = currentRoom['actions']
         currentVerbs   = currentActions.keys()
+        if "enemy" not in currentRoom :
+            currentRoom["enemy"] = detect_enemy()
+        elif currentRoom["enemy"].defeated :
+            currentRoom["enemy"] = detect_enemy()
+        print "While walking along, you see %s, minding its own business"%currentRoom["enemy"].name
 
         print
         print
