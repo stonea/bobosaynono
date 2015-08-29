@@ -1,12 +1,13 @@
 import sys
 import os
 import time
+import gamestate
 from random import random, sample
 
 from rpg import prompt
 
-def game(gameState) :
-    if 'monies' not in gameState['inventory'] or gameState['inventory']['monies'] == 0 :
+def game() :
+    if 'monies' not in gamestate.inventory() or gamestate.inventory()['monies'] == 0 :
         print ("\"But alas, my dear fellow, why you po. Ain' got none o dat GREEN \n"
                "na'mean? Ya'll know ain' nobady can play if ya ain' got dem monies!\" \n"
                "The logic of the man's words slowly penetrate your mind, and you realize \n"
@@ -16,7 +17,7 @@ def game(gameState) :
         return {}
     else :
         bet_amount = 0
-        monies = gameState['inventory']['monies']
+        monies = gamestate.inventory()['monies']
         while bet_amount < 1 or bet_amount > monies :
             print ("\"Ay, how many of your %d pretty farthings wish thee to bet?\" [max %d]"%(monies,monies))
             try : bet_amount = int(raw_input())
@@ -26,11 +27,11 @@ def game(gameState) :
                 print ("\"An integer, Dumas.\"")
         print("\"A bold bet, %d. Now let's see the mettle of your kettle!\""%bet_amount)
 
-    skill = game_of_skill(gameState)
+    skill = game_of_skill()
     skill['bet_amount'] = bet_amount
-    chance = game_of_chance(gameState,skill)
+    chance = game_of_chance(skill)
 
-def game_of_skill(gameState) :
+def game_of_skill() :
     wrds = ("\"First the test of skill. I will give you five words and you must give them back \n"
            "to me in reverse order! The words will come and go quickly, so be sharp!. Get ready.")
     print wrds,
@@ -74,7 +75,7 @@ def game_of_skill(gameState) :
     time.sleep(5)
     return skill_resp
 
-def game_of_chance(gameState,skill) :
+def game_of_chance(skill) :
 
     game_width = 31
     game_height = 25
@@ -113,7 +114,7 @@ def game_of_chance(gameState,skill) :
     elif payout == 0 :
         print("\"Alas poor victim of cruel vagary, you won naught but a sense of loss and regret. \n"
               "Hone your skills, polish your mind, and return again!\"")
-    gameState['inventory']['monies'] += -skill['bet_amount']+payout*skill['bet_amount']
+    gamestate.inventory()['monies'] += -skill['bet_amount']+payout*skill['bet_amount']
 
 if __name__ == '__main__' :
     while True :

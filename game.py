@@ -2,20 +2,46 @@ import os
 import sys
 import time
 from random import random, randint, sample
+import gamestate
 
 from carnival import game
 from rpg import detect_enemy, fight, prompt
 
-gameRooms = {}
-gameState = {
-      'currentRoom': 'boboRoom'
-    , 'inventory': {'monies':10}
-}
+# /////////////////////////////////////////////////////////////////////////////
+# Bobo's room
+# /////////////////////////////////////////////////////////////////////////////
 
-def i(s) :
-    def _(*args,**kwargs) :
-        print s
-    return _
+def talkToBobo(*args,**kwargs):
+    boboStates = ['no', 'yes']
+    boboResponses = ['Bobo says %s%s' % (x,x) for x in boboStates]
+    boboActivities = {
+        "n": 
+            [
+            "scratches his butt",
+            "throws some poo at you",
+            "gives you the hairy eyeball",
+            "looks generally annoyed"
+            ],
+        "y":
+            ["sings Ave Maria",
+             "gives you a flower",
+             "recites a beautiful Shakespeare sonnet",
+             "cures cancer"
+            ]
+    }
+
+
+    print "What would you like to say to Bobo?"
+    question = raw_input()
+    print boboResponses[randint(0,len(boboResponses)-1)]
+
+    youLikey = 'x'
+    while youLikey not in 'yn' :
+        print "Do you like Bobo's response? [y/n]"
+        youLikey = raw_input().lower()
+
+    print "Fine, Bobo %s"%sample(boboActivities[youLikey],1)[0]
+
 
 def play(*args,**kwargs) :
     print "Bobo looks at you with childlike excitement!"
@@ -45,6 +71,115 @@ def play(*args,**kwargs) :
         elif move == 'l' :
             curr_pos = (max(0,min(curr_pos[0]+1,game_width)),
                         max(0,min(curr_pos[1],game_width)))
+
+
+# /////////////////////////////////////////////////////////////////////////////
+# Cave
+# /////////////////////////////////////////////////////////////////////////////
+
+def talkToMan():
+    if not 'sword' in gamestate.inventory():
+        print "The man tells you that it is dangerous to go alone and to take this"
+        print "You acquire the wooden sword <uplifting, yet short, acquisation tune plays>."
+        gamestate.addToInventory('sword')
+    else:
+        print "The man tells you to get going.  He's old and the world is made for the young."
+        print "He tells you that you should go kill things, but watch out for exploding barrels and"
+        print "stray HP Lovecraft beasts."
+
+# /////////////////////////////////////////////////////////////////////////////
+# Playpen
+# /////////////////////////////////////////////////////////////////////////////
+
+def playpenDescription(room):
+    print "You are in a Bobo's playpen.",
+    if('ball' not in gamestate.inventory()):
+        print "It's sparse, but it does have a big bouncy ball.  There is a passage to the south."
+    else:
+        print "It's sparse and soulless. And now ball-less.  There is a passage to the south."
+
+def takeBall():
+    gamestate.addToInventory('ball')
+    del(gamestate.room('playpenRoom')['actions']['take'])
+    del(gamestate.room('playpenRoom')['actions']['bounce'])
+    print "You take the ball.  The room suddenly seems less joy filled."
+
+# /////////////////////////////////////////////////////////////////////////////
+# Persistent actions
+# /////////////////////////////////////////////////////////////////////////////
+
+PERSISTENT_VERBS = ["go","fight","look","exit","inventory"]
+PERSISTENT_NOUNS = ["north", "south", "west", "east"]
+
+def go(room, direction):
+    adjacencies = room['adjacent']
+    for (expectedDirs, exitsTo) in adjacencies:
+        for expectedDir in expectedDirs:
+            if(expectedDir == direction):
+                gamestate.moveTo(exitsTo)
+                return
+
+    print "Can't go that way."
+
+
+def look(room, noun):
+    print "Upon deep inspection of the room you realize that. "
+
+    adjacencies = room['adjacent']
+    if len(adjacencies) == 0:
+        print "There are no adjacent rooms"
+
+    print "You may get to an adjacent location with one of the magic words:  %s" % ', '.join(dirs[0] for (dirs,room) in adjacencies)
+
+def exit(room, noun):
+    if(prompt("Really exit? ") == 'y'):
+        sys.exit(1)
+
+def inventory(room, noun):
+    inventory = gamestate.inventory()
+    if len(inventory) == 0:
+        print "You have nothing in your inventory"
+        return
+    print "You have the following in your inventory:"
+    for item,num in inventory.items():
+        item_str = item if num is None else '%s (%d)'%(item,num)
+        print "   * ", item_str
+
+PERSISTENT_ACTIONS = {   "go": go
+                       , "fight":fight
+                       , "look":look
+                       , "exit":exit
+                       , "inventory":inventory
+                     }
+
+# /////////////////////////////////////////////////////////////////////////////
+# Game logic
+# /////////////////////////////////////////////////////////////////////////////
+
+def listOfAllVerbs(currentVerbs):
+    res = currentVerbs
+    res.extend(PERSISTENT_VERBS)
+    return res
+
+def evaluateAction(cmd, room):
+    actions  = room['actions']
+
+    (verb, noun) = cmd
+    if verb in actions:
+        if noun in actions[verb]:
+            actions[verb][noun]()
+        else:
+            print "Don't know how to do that..."
+    elif verb in PERSISTENT_ACTIONS:
+        PERSISTENT_ACTIONS[verb](room, noun)
+    else:
+        print "Don't know how to do that..."
+
+
+def i(s) :
+    def _(*args,**kwargs) :
+        print s
+    return _
 
 def computeSetOfLegalNounsForRoom(room, legalVerbs):
     """ Yeah this function sucks """
@@ -80,124 +215,7 @@ def parseCommand(command, room):
 
     return (verb, noun)
 
-def talkToBobo(*args,**kwargs):
-    boboStates = ['no', 'yes']
-    boboResponses = ['Bobo says %s%s' % (x,x) for x in boboStates]
-    boboActivities = {
-        "n": 
-            [
-            "scratches his butt",
-            "throws some poo at you",
-            "gives you the hairy eyeball",
-            "looks generally annoyed"
-            ],
-        "y":
-            ["sings Ave Maria",
-             "gives you a flower",
-             "recites a beautiful Shakespeare sonnet",
-             "cures cancer"
-            ]
-    }
 
-
-    print "What would you like to say to Bobo?"
-    question = raw_input()
-    print boboResponses[randint(0,len(boboResponses)-1)]
-
-    youLikey = 'x'
-    while youLikey not in 'yn' :
-        print "Do you like Bobo's response? [y/n]"
-        youLikey = raw_input().lower()
-
-    print "Fine, Bobo %s"%sample(boboActivities[youLikey],1)[0]
-
-def talkToMan(gameState):
-    if not 'sword' in gameState['inventory']:
-        print "The man tells you that it is dangerous to go alone and to take this"
-        print "You acquire the wooden sword <uplifting, yet short, acquisation tune plays>."
-        gameState['inventory']['sword'] = None
-    else:
-        print "The man tells you to get going.  He's old and the world is made for the young."
-        print "He tells you that you should go kill things, but watch out for exploding barrels and"
-        print "stray HP Lovecraft beasts."
-
-def playpenDescription(room):
-    print "You are in a Bobo's playpen.",
-    if('ball' not in gameState['inventory']):
-        print "It's sparse, but it does have a big bouncy ball.  There is a passage to the south."
-    else:
-        print "It's sparse and soulless. And now ball-less.  There is a passage to the south."
-
-def takeBall(gameState):
-    gameState['inventory']['ball'] = None
-    del(gameRooms['playpenRoom']['actions']['take'])
-    del(gameRooms['playpenRoom']['actions']['bounce'])
-    print "You take the ball.  The room suddenly seems less joy filled."
-
-def evaluateAction(cmd, room):
-    actions  = room['actions']
-
-    (verb, noun) = cmd
-    if verb in actions:
-        if noun in actions[verb]:
-            actions[verb][noun](gameState)
-        else:
-            print "Don't know how to do that..."
-    elif verb in PERSISTENT_ACTIONS:
-        PERSISTENT_ACTIONS[verb](room, noun)
-    else:
-        print "Don't know how to do that..."
-
-def go(room, direction):
-    adjacencies = room['adjacent']
-    for (expectedDirs, exitsTo) in adjacencies:
-        for expectedDir in expectedDirs:
-            if(expectedDir == direction):
-                gameState['currentRoom'] = exitsTo
-                return
-
-    print "Can't go that way."
-
-
-def look(room, noun):
-    print "Upon deep inspection of the room you realize that. "
-
-    adjacencies = room['adjacent']
-    if len(adjacencies) == 0:
-        print "There are no adjacent rooms"
-
-    print "You may get to an adjacent location with one of the magic words:  %s" % ', '.join(dirs[0] for (dirs,room) in adjacencies)
-
-def exit(room, noun):
-    if(prompt("Really exit? ") == 'y'):
-        sys.exit(1)
-
-def inventory(room, noun):
-    inventory = gameState['inventory']
-    if len(inventory) == 0:
-        print "You have nothing in your inventory"
-        return
-    print "You have the following in your inventory:"
-    for item,num in inventory.items():
-        item_str = item if num is None else '%s (%d)'%(item,num)
-        print "   * ", item_str
-
-
-
-
-PERSISTENT_VERBS = ["go","fight","look","exit","inventory"]
-PERSISTENT_NOUNS = ["north", "south", "west", "east"]
-PERSISTENT_ACTIONS = {   "go": go
-                       , "fight":fight
-                       , "look":look
-                       , "exit":exit
-                       , "inventory":inventory
-                     }
-
-def listOfAllVerbs(currentVerbs):
-    res = currentVerbs
-    res.extend(PERSISTENT_VERBS)
-    return res
 
 def gameLoop():
     boboRoom = {}
@@ -269,16 +287,14 @@ def gameLoop():
         }
 
 
-
-    gameRooms['boboRoom']    = boboRoom
-    gameRooms['playpenRoom'] = playpenRoom
-    gameRooms['outside']     = outside
-    gameRooms['cave']        = cave
-    gameRooms['carnival']    = carnival
-
+    gamestate.addRoom('boboRoom', boboRoom)
+    gamestate.addRoom('playpenRoom', playpenRoom)
+    gamestate.addRoom('outside', outside)
+    gamestate.addRoom('cave', cave)
+    gamestate.addRoom('carnival', carnival)
 
     while True:
-        currentRoom    = gameRooms[gameState['currentRoom']]
+        currentRoom    = gamestate.currentRoom()
         currentActions = currentRoom['actions']
         currentVerbs   = currentActions.keys()
         if "enemy" not in currentRoom :
@@ -287,7 +303,7 @@ def gameLoop():
             currentRoom["enemy"] = detect_enemy()
 
         print
-        print "----[%s]%s" % (gameState['currentRoom'], "-" * (80 - len(gameState['currentRoom'])))
+        print "----[%s]%s" % (gamestate.nameOfCurrentRoom(), "-" * (80 - len(gamestate.nameOfCurrentRoom())))
         print
         print "While walking along, you see %s, minding its own business"%currentRoom["enemy"].name
         currentRoom['description'](currentRoom)
