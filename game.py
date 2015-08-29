@@ -101,7 +101,10 @@ def evaluateAction(cmd, room):
 
     (verb, noun) = cmd
     if verb in actions:
-        actions[verb][noun]()
+        if noun in actions[verb]:
+            actions[verb][noun]()
+        else:
+            print "Don't know how to do that..."
     elif verb in PERSISTENT_ACTIONS:
         PERSISTENT_ACTIONS[verb](room, noun)
     else:
