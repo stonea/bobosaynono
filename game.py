@@ -108,10 +108,9 @@ def takeBall():
 # Persistent actions
 # /////////////////////////////////////////////////////////////////////////////
 
-PERSISTENT_VERBS = ["go","fight","look","exit","inventory"]
-PERSISTENT_NOUNS = ["north", "south", "west", "east"]
 
 def go(room, direction):
+    direction = direction[0]
     adjacencies = room['adjacent']
     for (expectedDirs, exitsTo) in adjacencies:
         for expectedDir in expectedDirs:
@@ -145,11 +144,45 @@ def inventory(room, noun):
         item_str = item if num is None else '%s (%d)'%(item,num)
         print "   * ", item_str
 
+def use(room, nouns):
+    nouns = set(nouns)
+
+    subject = None
+    objecto = None
+    for noun in nouns:
+        if noun in gamestate.inventory():
+            subject = noun
+
+    if subject is None:
+        print "Use what?"
+        return
+
+    if not subject is None:
+        nouns.remove(subject)
+    if(len(nouns) > 0):
+        objecto = list(nouns)[0]
+
+    if objecto is None:
+        print "Use %s on what?" % subject
+        return
+
+    didIt = False
+    if 'uses' in room:
+        if (subject, objecto) in room['uses']:
+            didIt = True
+            room['uses'][(subject, objecto)]()
+
+    if not didIt:
+        print "Don't know how to do that..."
+
+PERSISTENT_VERBS = ["go","fight","look","exit","inventory","use"]
+PERSISTENT_NOUNS = ["north", "south", "west", "east"]
 PERSISTENT_ACTIONS = {   "go": go
                        , "fight":fight
                        , "look":look
                        , "exit":exit
                        , "inventory":inventory
+                       , 'use':use
                      }
 
 # /////////////////////////////////////////////////////////////////////////////
@@ -161,17 +194,37 @@ def listOfAllVerbs(currentVerbs):
     res.extend(PERSISTENT_VERBS)
     return res
 
+def parseCommand(command, room):
+    actions = room['actions']
+    legalVerbs = listOfAllVerbs(actions.keys())
+    legalNouns = computeSetOfLegalNounsForRoom(room, legalVerbs)
+
+    command = command.lower()
+    verb = 'none'
+    nouns = ['none']
+    for word in command.split():
+        if word in legalVerbs:
+            verb = word
+        elif word in legalNouns:
+            nouns.append(word)
+
+    if len(nouns) > 1:
+        nouns.remove('none')
+    return (verb, nouns)
+
+
 def evaluateAction(cmd, room):
     actions  = room['actions']
 
-    (verb, noun) = cmd
+    (verb, nouns) = cmd
+    noun = nouns[0]
     if verb in actions:
         if noun in actions[verb]:
             actions[verb][noun]()
         else:
             print "Don't know how to do that..."
     elif verb in PERSISTENT_ACTIONS:
-        PERSISTENT_ACTIONS[verb](room, noun)
+        PERSISTENT_ACTIONS[verb](room, nouns)
     else:
         print "Don't know how to do that..."
 
@@ -191,30 +244,15 @@ def computeSetOfLegalNounsForRoom(room, legalVerbs):
             for noun in actions[verb]:
                 legalNouns.add(noun)
 
+    # Add adjacencies
     for adjacency in room['adjacent']:
         for direction in adjacency[0]:
             legalNouns.add(direction)
 
+    # Add inventory items
+    legalNouns |= set(gamestate.inventoryItems())
+
     return legalNouns
-
-
-
-def parseCommand(command, room):
-    actions = room['actions']
-    legalVerbs = listOfAllVerbs(actions.keys())
-    legalNouns = computeSetOfLegalNounsForRoom(room, legalVerbs)
-
-    command = command.lower()
-    verb = 'none'
-    noun = 'none'
-    for word in command.split():
-        if word in legalVerbs:
-            verb = word
-        elif word in legalNouns:
-            noun = word
-
-    return (verb, noun)
-
 
 
 def gameLoop():
@@ -233,6 +271,10 @@ def gameLoop():
          , "play":      {   'none': i("With yourself?!")
                           , 'bobo': play
                         }
+        }
+    boboRoom['uses'] = \
+        {    ('ball', 'bobo'):  i("Bobo is extremly happy playing with the ball!")
+           , ('monies', 'bobo'): i("Bobo is beyond the kind of material wealth that makes humans happy.")
         }
 
     playpenRoom = {}
@@ -285,6 +327,11 @@ def gameLoop():
                           , 'man': talkToMan
                         }
         }
+    cave['uses'] = \
+        {    ('ball', 'man'):  i("The man bounces the ball back your way: what fun!")
+           , ('monies', 'man'): i("I don't need to be bribed sonny boy.")
+        }
+
 
 
     gamestate.addRoom('boboRoom', boboRoom)
