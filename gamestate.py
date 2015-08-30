@@ -40,3 +40,4 @@ def youSuckedIt():
     _suckedIt = _suckedIt + 1
     if _suckedIt == 3:
         _inventory["wolfdong"] = None
+

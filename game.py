@@ -326,10 +326,12 @@ def gameLoop():
                              "and chirping birds and shit. " 
                              "Looking around you see the entrance to Bobo's hut to the north,\n" 
                              "there is a cave off the east,"
-                             "and there is a carnival off to the west.")
+                             "and there is a carnival off to the west.\n"
+                             "To the south is a long, strong, and oddly well hung road.\n") 
     outside['adjacent'] = [   (['hut', 'entrance'], 'boboRoom')
                             , (['cave', 'east'], 'cave')
                             , (['carnival','west'],'carnival') 
+                            , (['road','south'],'kitchenDick') 
                           ]
     outside['actions'] = \
         {
@@ -366,13 +368,38 @@ def gameLoop():
            , ('sword', 'man'): killMan
         }
 
+    kitchenDick = {}
+    kitchenDick['description'] = i("You are standing in the middle of a long, strong, and oddly well hung road.\n"
+                                   "The road reaches to the north and to the south.")
+    kitchenDick['adjacent'] = [   (['north'], 'outside')
+                                , (['south'], 'kitchenDickTip')
+                              ]
+    kitchenDick['actions'] = \
+        {
+        }
+    kitchenDick['uses'] = \
+        {
+        }
 
+    kitchenDickTip = {}
+    kitchenDickTip['description'] = i("You are at the end of a long, strong, and oddly well hung road.\n"
+                                   'There is a sign to your right reading "Kitchen-Dick Road."')
+    kitchenDickTip['adjacent'] = [  (['north'], 'kitchenDick')
+                              ]
+    kitchenDickTip['actions'] = \
+        {
+        }
+    kitchenDickTip['uses'] = \
+        {
+        }
 
     gamestate.addRoom('boboRoom', boboRoom)
     gamestate.addRoom('playpenRoom', playpenRoom)
     gamestate.addRoom('outside', outside)
     gamestate.addRoom('cave', cave)
     gamestate.addRoom('carnival', carnival)
+    gamestate.addRoom('kitchenDick', kitchenDick)
+    gamestate.addRoom('kitchenDickTip', kitchenDickTip)
 
     while True:
         currentRoom    = gamestate.currentRoom()
