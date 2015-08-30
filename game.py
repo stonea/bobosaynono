@@ -100,7 +100,7 @@ def talkToMan(room):
 
 def killMan(room):
     print "You strike the man and steal his monies.  The world is cruel, but yet you are rewarded."
-    gamestate.inventory()['monies'] += 50
+    gamestate.inventory()['monies'] += 200
     room['manDead'] = True
     del(room['uses'][('sword', 'man')])
     del(room['actions']['talk']['man'])
@@ -115,12 +115,92 @@ def playpenDescription(room):
         print "It's sparse, but it does have a big bouncy ball.  There is a passage to the south."
     else:
         print "It's sparse and soulless. And now ball-less.  There is a passage to the south."
+    if 'dongedDoor' in room and 'keyedDoor' in room:
+        print "To the west is an opened door.  You smell a spicy odor eminating in that direction."
+    else:
+        print "To the west is a locked door.  It has both a regular keyhole and another oddly shapped hole."
 
 def takeBall(room):
     gamestate.addToInventory('ball')
     del(gamestate.room('playpenRoom')['actions']['take'])
     del(gamestate.room('playpenRoom')['actions']['bounce'])
     print "You take the ball.  The room suddenly seems less joy filled."
+
+def keyDoor(room):
+    print "The key breaks as you turn it, but the door is partially unlocked!"
+    if 'key' in gamestate.inventory():
+        if 'key' in gamestate.inventory():
+            gamestate.removeFromInventory('key')
+            room['keyedDoor'] = True
+    if 'dongedDoor' in room and 'keyedDoor' in room:
+        openDoor(room)
+
+def dongDoor(room):
+    print "The dong slips in all smooth and natural like."
+    room['dongedDoor'] = True
+    if 'dongedDoor' in room and 'keyedDoor' in room:
+        openDoor(room)
+
+def openDoor(room):
+    print "The door swings open."
+    room['adjacent'].append((['west', 'door'], 'secretRoom'))
+    
+# /////////////////////////////////////////////////////////////////////////////
+# KitchenDickTip
+# /////////////////////////////////////////////////////////////////////////////
+
+def kitchenDickDescrip(room):
+    print "You are at the end of a long, strong, and oddly well hung road."
+    print 'There is a sign to your right reading "Kitchen-Dick Road."'
+    if not 'noEdwardo' in room:
+        print "To your left is a mustachioed man with greasy, slicked back hair, and a long trench coat."
+        print "Needless to say this dude looks totally legit.  But then again who can tell.  On ething you're"
+        print "sure of is that this dude has no balls."
+
+def talkToEdwardo(room):
+    say("Ehhhh, ehhhhh, right up the pooftah.")
+
+    if 'key' in gamestate.inventory():
+        return
+
+    say("Would you like to buy a key, only $200?")
+    if(prompt("Buy the creepy dude's key? ") == 'y'):
+        print "The dude chuckles and hands you a key."
+        moniesAmount = gamestate.inventory()['monies']
+        if moniesAmount < 200:
+            say("You trying to swindle me!")
+            return
+        gamestate.inventory()['monies'] -= 200
+        gamestate.addToInventory('key')
+    else:
+        say("Hehehehe, I have a feeling you'll need it.")
+
+def noDeathToEdwardo(room):
+    say("Oh-ho-ho")
+    print "Edwardo (the creepy dude) bobs and weaves his way out of your stubby, stabby, swords path."
+
+def edwardoJustNeedsSomeBalls(room):
+    print "Edwardo looks so happy playing with the balls.  Suddenly his trench-coat dissapears, his hair"
+    print "unslickifies, his mustache dissappears.  He now takes on the appearance of an upstanding"
+    print "gentlemen."
+    print
+    say("The kindness you have shown me has warmed my heart dear stranger.  Here have some keys and monies.")
+    print
+    print "Then Edwardo dissapears."
+    print
+    print "Sheeeeeeeeeiiiit"
+    gamestate.inventory()['monies'] += 200
+    gamestate.addToInventory('key')
+    room['noEdwardo'] = True
+
+    del(room['actions']['talk'])
+    toRemove = []
+    for use in room['uses']:
+        if room['uses'][use] == noDeathToEdwardo or room['uses'][use] == edwardoJustNeedsSomeBalls:
+            toRemove.append(use)
+    for use in toRemove:
+        del(room['uses'][use])
+
 
 # /////////////////////////////////////////////////////////////////////////////
 # Persistent actions
@@ -280,6 +360,11 @@ def computeSetOfLegalNounsForRoom(room, legalVerbs):
         for direction in adjacency[0]:
             legalNouns.add(direction)
 
+    # Add any use targets
+    if 'uses' in room:
+        for (item, tgt) in room['uses']:
+            legalNouns.add(tgt)
+
     # Add inventory items
     legalNouns |= set(gamestate.inventoryItems())
 
@@ -320,6 +405,18 @@ def gameLoop():
                            , 'ball': takeBall
                          }
         } 
+    playpenRoom['uses'] = {
+             ('key', 'door'):      keyDoor
+           , ('wolfdong', 'door'): dongDoor
+           , ('dong', 'door'):     dongDoor
+        }
+
+    secretRoom = {}
+    secretRoom['description'] = i("You're in the secret spicy room.  There's not much to do here for now.\n"
+                                  "To the east an open door.")
+    secretRoom['adjacent'] = [(['east', 'door'], 'playpenRoom')]
+    secretRoom['actions'] = {}
+    secretRoom['uses'] = {}
 
     outside = {}
     outside['description'] = i("You are in the great oudoors. There's lots of trees and clouds\n" 
@@ -382,15 +479,26 @@ def gameLoop():
         }
 
     kitchenDickTip = {}
-    kitchenDickTip['description'] = i("You are at the end of a long, strong, and oddly well hung road.\n"
-                                   'There is a sign to your right reading "Kitchen-Dick Road."')
+    kitchenDickTip['description'] = kitchenDickDescrip
     kitchenDickTip['adjacent'] = [  (['north'], 'kitchenDick')
-                              ]
+                                 ]
     kitchenDickTip['actions'] = \
         {
+           "talk":      {   'none': i("Talk to who?")
+                          , 'man': talkToEdwardo
+                          , 'mustachioed': talkToEdwardo
+                          , 'dude': talkToEdwardo
+                        }
         }
     kitchenDickTip['uses'] = \
         {
+               ('sword', 'man'): noDeathToEdwardo
+             , ('sword', 'dude'): noDeathToEdwardo
+             , ('sword', 'mustachiod'): noDeathToEdwardo
+             , ('ball', 'man'): edwardoJustNeedsSomeBalls
+             , ('ball', 'dude'): edwardoJustNeedsSomeBalls
+             , ('ball', 'mustachiod'): edwardoJustNeedsSomeBalls
+
         }
 
     gamestate.addRoom('boboRoom', boboRoom)
@@ -400,6 +508,7 @@ def gameLoop():
     gamestate.addRoom('carnival', carnival)
     gamestate.addRoom('kitchenDick', kitchenDick)
     gamestate.addRoom('kitchenDickTip', kitchenDickTip)
+    gamestate.addRoom('secretRoom', secretRoom)
 
     while True:
         currentRoom    = gamestate.currentRoom()

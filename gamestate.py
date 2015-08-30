@@ -26,6 +26,13 @@ def addToInventory(item, count=None):
     global _inventory
     _inventory[item] = count
 
+def removeFromInventory(item):
+    global _inventory
+    if _inventory[item] is None:
+        del(_inventory[item])
+    else:
+        _inventory[item] -= 1
+
 def addRoom(name, room):
     _gameRooms[name] = room
 
