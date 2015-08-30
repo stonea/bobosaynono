@@ -4,9 +4,9 @@ import time
 from random import random, randint, sample
 import gamestate
 
-from util import say
+from util import say, print_color
 
-from carnival import game, talkToCarnie
+from carnival import game, talkToCarnie, talkToBeardedLadies
 from rpg import detect_enemy, fight, prompt
 
 # /////////////////////////////////////////////////////////////////////////////
@@ -289,9 +289,9 @@ def computeSetOfLegalNounsForRoom(room, legalVerbs):
 def gameLoop():
     boboRoom = {}
     boboRoom['description'] = i("You are in a room with Bobo. There is nothing else but Bobo.\n" 
-                              "There's a door behind you. There is a passage to the north.")
+                              "There's an open door behind you (south). There is a passage to the north.")
     boboRoom['adjacent'] = [  (['north', 'passage', 'playpen'], 'playpenRoom')
-                            , (['door', 'behind', 'backwards', 'outside'], 'outside')]
+                            , (['south', 'door', 'behind', 'backwards', 'outside'], 'outside')]
     boboRoom['actions'] = \
         {  "smirk":     {   'none': i('Smirk at who?')
                           , 'bobo': i("Bobo smirks back at you")
@@ -314,22 +314,22 @@ def gameLoop():
     playpenRoom['adjacent'] = [(['south', 'passage'], 'boboRoom')]
     playpenRoom['actions'] = \
         {  "bounce":     {   'none': i('Bounce what?')
-                          , 'ball': i("The ball bounces: what fun!")
+                           , 'ball': i("The ball bounces: what fun!")
                          }
          , "take":       {   'none': i("Take what?")
-                          , 'ball': takeBall
+                           , 'ball': takeBall
                          }
         } 
 
     outside = {}
     outside['description'] = i("You are in the great oudoors. There's lots of trees and clouds\n" 
-                             "and chirping birds and shit.\n" 
-                             "Behind you is the entrance to Bobo's hut.\n" 
-                             "You see a cave off into the distance.\n"
-                             "There is a carnival off to your left.")
+                             "and chirping birds and shit. " 
+                             "Looking around you see the entrance to Bobo's hut to the north,\n" 
+                             "there is a cave off the east,"
+                             "and there is a carnival off to the west.")
     outside['adjacent'] = [   (['hut', 'entrance'], 'boboRoom')
-                            , (['cave'], 'cave')
-                            , (['carnival','left'],'carnival') 
+                            , (['cave', 'east'], 'cave')
+                            , (['carnival','west'],'carnival') 
                           ]
     outside['actions'] = \
         {
@@ -341,11 +341,13 @@ def gameLoop():
                                "pantaloons with a raging but friendly-looking codpiece beckons you near him.\n")
     carnival['adjacent'] = [     (['outdoors','forest'],'outside') ]
     carnival['actions'] = \
-        {  "play":     {   'none': i('Play what?')
+        {  "play":     {    'none': i('Play what?')
                           , 'game': game
                          }
-        ,  "talk":     {   'carnie': talkToCarnie,
-                           'man'   : talkToCarnie
+        ,  "talk":     {     'carnie' : talkToCarnie
+                           , 'man'    : talkToCarnie
+                           , 'lady'   : talkToBeardedLadies
+                           , 'ladies' : talkToBeardedLadies
                        }
         }
 
@@ -382,14 +384,13 @@ def gameLoop():
             currentRoom["enemy"] = detect_enemy()
 
         print
-        print "----[%s]%s" % (gamestate.nameOfCurrentRoom(), "-" * (80 - len(gamestate.nameOfCurrentRoom())))
+        print_color("hiyellow", "----[%s]%s" % (gamestate.nameOfCurrentRoom(), "-" * (80 - len(gamestate.nameOfCurrentRoom()))))
         print
         print "While walking along, you see %s, minding its own business"%currentRoom["enemy"].name
         currentRoom['description'](currentRoom)
         print ""
-        print "You can do things. ",
-        print "You can always:  %s" % ', '.join(PERSISTENT_VERBS)
-        print "In here you can:  %s" % ', '.join(currentVerbs)
+        print_color('cyan', "You can do things. You can always:  %s" % ', '.join(PERSISTENT_VERBS))
+        print_color('cyan', "In here you can:  %s" % ', '.join(currentVerbs))
         print '>', 
         command = raw_input()
         print

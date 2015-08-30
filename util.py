@@ -1,14 +1,16 @@
 import sys
 import functools
 
-_ascii = {'blue': '\033[34m',
-          'yellow': '\033[33m',
-          'green': '\033[32m',
-          'red' :  '\033[31m',
-          'black' :  '\033[30m',
-          'cyan' :  '\033[36m',
-          'white' :  '\033[37m',
-          'purple' :  '\033[35m'
+_ascii = {  'blue': '\033[0;34m'
+           , 'yellow': '\033[0;33m'
+           , 'green': '\033[0;32m'
+           , 'red' :  '\033[0;31m'
+           , 'black' :  '\033[0;30m'
+           , 'cyan' :  '\033[0;36m'
+           , 'white' :  '\033[0;37m'
+           , 'purple' :  '\033[0;35m'
+           , 'hiyellow' :  '\033[1;33m'
+           , 'hiwhite' :  '\033[1;37m'
          }
 
 def print_color(color,msg) :
