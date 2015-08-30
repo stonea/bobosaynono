@@ -1,5 +1,6 @@
 import time
 from random import randint, sample
+import gamestate
 
 def prompt(q,opts=['y','n']) :
     resp = "nopenopenope"
@@ -51,8 +52,7 @@ def detect_enemy() :
     enemy = Actor(enemy_type,enemies[enemy_type])
     return enemy
 
-def fight(gamestate, noun) :
-
+def fight(room, noun) :
     room = gamestate.currentRoom()
 
     your_stats = Stats(100,20)
