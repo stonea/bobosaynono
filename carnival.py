@@ -3,10 +3,14 @@ import os
 import time
 import gamestate
 from random import random, sample
+from util import say
 
 from rpg import prompt
 
-def game() :
+def talkToCarnie(gamestate) :
+    say ("\"Care to test your luck and your skill at a game that tests your luck\n"
+           "and skill?\" he says, \"For indeed the two go hand in hand.\"")
+def game(gamestate) :
     if 'monies' not in gamestate.inventory() or gamestate.inventory()['monies'] == 0 :
         print ("\"But alas, my dear fellow, why you po. Ain' got none o dat GREEN \n"
                "na'mean? Ya'll know ain' nobady can play if ya ain' got dem monies!\" \n"

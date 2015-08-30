@@ -13,6 +13,7 @@ class Actor(object) :
         self.name = name
         self.hp = stats.hp
         self.base_damage = stats.base_damage
+        self.value = stats.value
         self.defeated = False
 
     def hit(self,damage) :
@@ -24,15 +25,16 @@ class Actor(object) :
         return self.base_damage+randint(0,3)
 
 class Stats(object) :
-    def __init__(self,hp,base_damage) :
+    def __init__(self,hp,base_damage,value=0) :
         self.hp = hp
         self.base_damage = base_damage
+        self.value = value
 
-enemies = {"the wumpus": Stats(100,15),
-           "a kitty witty": Stats(150,3),
-           "Chthuluh": Stats(1000000,1000000),
-           "a ladybug": Stats(100,0),
-           "an exploding barrel": Stats(26,1000000)
+enemies = {"the wumpus": Stats(100,15,10),
+           "a kitty witty": Stats(150,3,3),
+           "Chthuluh": Stats(1000000,1000000,1000000),
+           "a ladybug": Stats(100,0,1),
+           "an exploding barrel": Stats(26,1000000,5)
           }
 enemy_odds = {"the wumpus": 5,
               "a kitty witty": 8,
@@ -49,7 +51,9 @@ def detect_enemy() :
     enemy = Actor(enemy_type,enemies[enemy_type])
     return enemy
 
-def fight(room, noun) :
+def fight(gamestate, noun) :
+
+    room = gamestate.currentRoom()
 
     your_stats = Stats(100,20)
     bobos_stats = Stats(25,5)
@@ -101,6 +105,9 @@ def fight(room, noun) :
 
     if enemy.defeated :
         print "You slew your foe!"
+        if enemy.value != 0 :
+            print "ERMAGERD %s dropped %d monies!!1!1!!"%(enemy.name,enemy.value)
+            gamestate.addToInventory("monies",gamestate.inventory()['monies']+enemy.value)
 
     if you.defeated :
         print "Whelp, guess fighting just wasn't your thing. You're dead."

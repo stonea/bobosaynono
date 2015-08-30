@@ -4,14 +4,16 @@ import time
 from random import random, randint, sample
 import gamestate
 
-from carnival import game
+from util import say
+
+from carnival import game, talkToCarnie
 from rpg import detect_enemy, fight, prompt
 
 # /////////////////////////////////////////////////////////////////////////////
 # Bobo's room
 # /////////////////////////////////////////////////////////////////////////////
 
-def talkToBobo(*args,**kwargs):
+def talkToBobo(gamestate,*args,**kwargs):
     boboStates = ['no', 'yes']
     boboResponses = ['Bobo says %s%s' % (x,x) for x in boboStates]
     boboActivities = {
@@ -24,7 +26,7 @@ def talkToBobo(*args,**kwargs):
             ],
         "y":
             ["sings Ave Maria",
-             "gives you a flower",
+             "gives you a flower, but it disintegrates immediately",
              "recites a beautiful Shakespeare sonnet",
              "cures cancer"
             ]
@@ -43,7 +45,7 @@ def talkToBobo(*args,**kwargs):
     print "Fine, Bobo %s"%sample(boboActivities[youLikey],1)[0]
 
 
-def play(*args,**kwargs) :
+def play(gamestate,*args,**kwargs) :
     print "Bobo looks at you with childlike excitement!"
     time.sleep(3)
     game_width = 25
@@ -77,15 +79,15 @@ def play(*args,**kwargs) :
 # Cave
 # /////////////////////////////////////////////////////////////////////////////
 
-def talkToMan():
+def talkToMan(gamestate):
     if not 'sword' in gamestate.inventory():
-        print "The man tells you that it is dangerous to go alone and to take this"
-        print "You acquire the wooden sword <uplifting, yet short, acquisation tune plays>."
+        say ("The man tells you that it is dangerous to go alone and to take this \n"
+             "You acquire the wooden sword <uplifting, yet short, acquisation tune plays>.")
         gamestate.addToInventory('sword')
     else:
-        print "The man tells you to get going.  He's old and the world is made for the young."
-        print "He tells you that you should go kill things, but watch out for exploding barrels and"
-        print "stray HP Lovecraft beasts."
+        say ("The man tells you to get going.  He's old and the world is made for the young. \n"
+             "He tells you that you should go kill things, but watch out for exploding barrels and \n"
+             "stray HP Lovecraft beasts.")
 
 # /////////////////////////////////////////////////////////////////////////////
 # Playpen
@@ -98,7 +100,7 @@ def playpenDescription(room):
     else:
         print "It's sparse and soulless. And now ball-less.  There is a passage to the south."
 
-def takeBall():
+def takeBall(gamestate):
     gamestate.addToInventory('ball')
     del(gamestate.room('playpenRoom')['actions']['take'])
     del(gamestate.room('playpenRoom')['actions']['bounce'])
@@ -109,8 +111,9 @@ def takeBall():
 # /////////////////////////////////////////////////////////////////////////////
 
 
-def go(room, direction):
+def go(gamestate, direction):
     direction = direction[0]
+    room = gamestate.currentRoom()
     adjacencies = room['adjacent']
     for (expectedDirs, exitsTo) in adjacencies:
         for expectedDir in expectedDirs:
@@ -220,11 +223,11 @@ def evaluateAction(cmd, room):
     noun = nouns[0]
     if verb in actions:
         if noun in actions[verb]:
-            actions[verb][noun]()
+            actions[verb][noun](gamestate)
         else:
             print "Don't know how to do that..."
     elif verb in PERSISTENT_ACTIONS:
-        PERSISTENT_ACTIONS[verb](room, nouns)
+        PERSISTENT_ACTIONS[verb](gamestate, nouns)
     else:
         print "Don't know how to do that..."
 
@@ -305,15 +308,16 @@ def gameLoop():
 
     carnival = {}
     carnival['description'] = i("You come upon a merry carnival, with tiny ponies and tents and\n"
-                               "bearded ladies and shit. A wiry man in brightly colored\n"
-                               "pantaloons beckons you near him.\n"
-                               "\"Care to test your luck and your skill at a game that tests your luck\n"
-                               "and skill?\" he says, \"For indeed the two go hand in hand.\"")
+                               "bearded ladies and shit. A wiry carnie in brightly colored\n"
+                               "pantaloons with a raging but friendly-looking codpiece beckons you near him.\n")
     carnival['adjacent'] = [     (['outdoors','forest'],'outside') ]
     carnival['actions'] = \
         {  "play":     {   'none': i('Play what?')
                           , 'game': game
                          }
+        ,  "talk":     {   'carnie': talkToCarnie,
+                           'man'   : talkToCarnie
+                       }
         }
 
     cave = {}
