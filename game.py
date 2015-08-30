@@ -194,14 +194,18 @@ def use(room, nouns):
     if not didIt:
         print "Don't know how to do that..."
 
-PERSISTENT_VERBS = ["go","fight","look","exit","inventory","use"]
+def suckit(room, nouns):
+    print "Sucked it good."
+
+PERSISTENT_VERBS = ["go","fight","look","exit","inventory","use", "suckit"]
 PERSISTENT_NOUNS = ["north", "south", "west", "east"]
 PERSISTENT_ACTIONS = {   "go": go
                        , "fight":fight
                        , "look":look
                        , "exit":exit
                        , "inventory":inventory
-                       , 'use':use
+                       , "use":use
+                       , "suckit":suckit
                      }
 
 # /////////////////////////////////////////////////////////////////////////////
