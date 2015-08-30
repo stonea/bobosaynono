@@ -19,7 +19,7 @@ def game(gamestate) :
                "\"Get yo ass out theya and kill you some kitty witties o some shit.\"\n"
                "You forthwith head out to kill some kitty witties or some shit.")
         return {}
-    else :
+    else:
         bet_amount = 0
         monies = gamestate.inventory()['monies']
         while bet_amount < 1 or bet_amount > monies :

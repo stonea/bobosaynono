@@ -79,7 +79,16 @@ def play(gamestate,*args,**kwargs) :
 # Cave
 # /////////////////////////////////////////////////////////////////////////////
 
-def talkToMan(gamestate):
+def caveDescription(room):
+    if 'manDead' in room:
+        print "You see the carcass of an old man.  It smells funny."
+    else:
+        print("You are in a cave, an old man stands in the center.  His beard is long and\n" 
+          "wizardly: sophisticated yet non-intimidating.  To his left and right are two\n" 
+          "fires.  He looks like a friendly chap")
+
+
+def talkToMan(room):
     if not 'sword' in gamestate.inventory():
         say ("The man tells you that it is dangerous to go alone and to take this \n"
              "You acquire the wooden sword <uplifting, yet short, acquisation tune plays>.")
@@ -88,6 +97,13 @@ def talkToMan(gamestate):
         say ("The man tells you to get going.  He's old and the world is made for the young. \n"
              "He tells you that you should go kill things, but watch out for exploding barrels and \n"
              "stray HP Lovecraft beasts.")
+
+def killMan(room):
+    print "You strike the man and steal his monies.  The world is cruel, but yet you are rewarded."
+    gamestate.inventory()['monies'] += 50
+    room['manDead'] = True
+    del(room['uses'][('sword', 'man')])
+    del(room['actions']['talk']['man'])
 
 # /////////////////////////////////////////////////////////////////////////////
 # Playpen
@@ -100,7 +116,7 @@ def playpenDescription(room):
     else:
         print "It's sparse and soulless. And now ball-less.  There is a passage to the south."
 
-def takeBall(gamestate):
+def takeBall(room):
     gamestate.addToInventory('ball')
     del(gamestate.room('playpenRoom')['actions']['take'])
     del(gamestate.room('playpenRoom')['actions']['bounce'])
@@ -173,7 +189,7 @@ def use(room, nouns):
     if 'uses' in room:
         if (subject, objecto) in room['uses']:
             didIt = True
-            room['uses'][(subject, objecto)]()
+            room['uses'][(subject, objecto)](room)
 
     if not didIt:
         print "Don't know how to do that..."
@@ -278,6 +294,7 @@ def gameLoop():
     boboRoom['uses'] = \
         {    ('ball', 'bobo'):  i("Bobo is extremly happy playing with the ball!")
            , ('monies', 'bobo'): i("Bobo is beyond the kind of material wealth that makes humans happy.")
+           , ('sword', 'bobo'): i("Nooooo!!!!! You could never hurt Bobo.")
         }
 
     playpenRoom = {}
@@ -321,9 +338,7 @@ def gameLoop():
         }
 
     cave = {}
-    cave['description'] = i("You are in a cave, an old man stands in the center.  His beard is long and\n" 
-                          "wizardly: sophisticated yet non-intimidating.  To his left and right are two\n" 
-                          "fires.  He looks like a friendly chap")
+    cave['description'] = caveDescription
     cave['adjacent'] = [(['outside', 'back', 'outside', 'outdoors'], 'outside')]
     cave['actions'] = \
         {
@@ -334,6 +349,7 @@ def gameLoop():
     cave['uses'] = \
         {    ('ball', 'man'):  i("The man bounces the ball back your way: what fun!")
            , ('monies', 'man'): i("I don't need to be bribed sonny boy.")
+           , ('sword', 'man'): killMan
         }
 
 
