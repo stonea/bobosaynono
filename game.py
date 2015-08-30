@@ -111,7 +111,7 @@ def takeBall(gamestate):
 # /////////////////////////////////////////////////////////////////////////////
 
 
-def go(gamestate, direction):
+def go(room, direction):
     direction = direction[0]
     room = gamestate.currentRoom()
     adjacencies = room['adjacent']
@@ -227,7 +227,7 @@ def evaluateAction(cmd, room):
         else:
             print "Don't know how to do that..."
     elif verb in PERSISTENT_ACTIONS:
-        PERSISTENT_ACTIONS[verb](gamestate, nouns)
+        PERSISTENT_ACTIONS[verb](room, nouns)
     else:
         print "Don't know how to do that..."
 
