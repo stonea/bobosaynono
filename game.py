@@ -154,7 +154,7 @@ def kitchenDickDescrip(room):
     print 'There is a sign to your right reading "Kitchen-Dick Road."'
     if not 'noEdwardo' in room:
         print "To your left is a mustachioed man with greasy, slicked back hair, and a long trench coat."
-        print "Needless to say this dude looks totally legit.  But then again who can tell.  On ething you're"
+        print "Needless to say this dude looks totally legit.  But then again who can tell.  On thing you're"
         print "sure of is that this dude has no balls."
 
 def talkToEdwardo(room):
@@ -172,6 +172,7 @@ def talkToEdwardo(room):
             return
         gamestate.inventory()['monies'] -= 200
         gamestate.addToInventory('key')
+        room['edwardoGaveKey'] = True
     else:
         say("Hehehehe, I have a feeling you'll need it.")
 
@@ -184,13 +185,14 @@ def edwardoJustNeedsSomeBalls(room):
     print "unslickifies, his mustache dissappears.  He now takes on the appearance of an upstanding"
     print "gentlemen."
     print
-    say("The kindness you have shown me has warmed my heart dear stranger.  Here have some keys and monies.")
+    say("The kindness you have shown me has warmed my heart dear stranger.  Here have what I have.")
     print
     print "Then Edwardo dissapears."
     print
     print "Sheeeeeeeeeiiiit"
     gamestate.inventory()['monies'] += 200
-    gamestate.addToInventory('key')
+    if not 'edwardoGaveKey' in room:
+        gamestate.addToInventory('key')
     room['noEdwardo'] = True
 
     del(room['actions']['talk'])
