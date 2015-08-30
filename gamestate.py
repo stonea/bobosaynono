@@ -1,6 +1,8 @@
 _gameRooms = {}
 _currentRoomName = 'boboRoom'
 _inventory = {'monies':10}
+_suckedIt = 0
+
 
 def currentRoom():
     return _gameRooms[_currentRoomName]
@@ -29,3 +31,12 @@ def addRoom(name, room):
 
 def room(name):
     return _gameRooms[name]
+
+def howManySuckedIt():
+    return _suckedIt
+
+def youSuckedIt():
+    global _suckedIt
+    _suckedIt = _suckedIt + 1
+    if _suckedIt == 3:
+        _inventory["wolfdong"] = None

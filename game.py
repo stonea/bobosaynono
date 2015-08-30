@@ -195,7 +195,15 @@ def use(room, nouns):
         print "Don't know how to do that..."
 
 def suckit(room, nouns):
-    print "Sucked it good."
+    if gamestate.howManySuckedIt() < 3:
+        print "Sucked it good, but bobo looks like it wants more."
+        gamestate.youSuckedIt()
+        if gamestate.howManySuckedIt() == 3:
+            print "The legendary wolfdong has appeared in your inventory.\n(It looks like a normal dong shaft but its got a wolf head on the end with glowing eyes and its dripping acid saliva.)"
+    else:
+        print "You might have a problem."
+        
+        
 
 PERSISTENT_VERBS = ["go","fight","look","exit","inventory","use", "suckit"]
 PERSISTENT_NOUNS = ["north", "south", "west", "east"]
