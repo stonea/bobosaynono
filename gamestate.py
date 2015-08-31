@@ -7,7 +7,7 @@ _suckedIt = 0
 _unMetAchievements = ['gotSword', 'gotDong', 'playCarnival', 'spicyRoom', 'deFuca']
 _metAchievements = []
 _achievementHints = {
-      'gotSword':     "Going alone is dangerous, but perhaps a friend can be in the caves."
+      'gotSword':     "Going alone is dangerous, but perhaps a friend can be found in the caves."
     , 'playCarnival': "A game of luck, a game of chance, makes a man healthy wealthy and wise."
     , 'gotDong':      "What would make Bobo get the satisfaction he desires."
     , 'spicyRoom':    "SPICYYYYYY! You'll need a normie key and a long, strong, key."
