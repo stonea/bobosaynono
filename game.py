@@ -355,6 +355,33 @@ PERSISTENT_ACTIONS = {   "go": go
 # /////////////////////////////////////////////////////////////////////////////
 # Game logic
 # /////////////////////////////////////////////////////////////////////////////
+def title():
+    print ""
+    print ""
+    print " ()()()     ()    ()()()      ()         __                 __ "
+    print " ()   ()  ()  ()  ()   ()   ()  ()      |      /\   \   /  |   "
+    print " ()()()   ()  ()  ()()()    ()  ()       \    /  \   \ /    \  "
+    print " ()   ()  ()  ()  ()   ()   ()  ()        |  /----\   |      | "
+    print " ()()()     ()    ()()()      ()        --' /      \  |    --' "
+    print "                                                               "
+    print "  NNNN       NN     OOOOO                   !!!!    !!!!       "
+    print "  NNNNNN     NN    OOOOOOO                  !!!!    !!!!       "
+    print "  NN  NNNN   NN   OOO    OO                 !!!!    !!!!       "
+    print "  NN    NNN  NN   OO     OO                 !!!!    !!!!       "
+    print "  NN      NN NN   OO     OO                 !!!!    !!!!       "
+    print "  NN       NNNN   OOO   OOO                 !!!!    !!!!       "
+    print "  NN        NNN    OOOOOOO                  !!!!    !!!!       "
+    print "  NN         NN     OOOOO                   !!!!    !!!!       "
+    print "                                            !!!!    !!!!       "
+    print "              NNNN       NN     OOOOO       !!!!    !!!!       "
+    print "              NNNNNN     NN    OOOOOOO      !!!!    !!!!       "
+    print "              NN  NNNN   NN   OOO    OO     !!!!    !!!!       "
+    print "              NN    NNN  NN   OO     OO     !!!!    !!!!       "
+    print "              NN      NN NN   OO     OO                        "
+    print "              NN       NNNN   OOO   OOO     !!!!    !!!!       "
+    print "              NN        NNN    OOOOOOO      !!!!    !!!!       "
+    print "              NN         NN     OOOOO       !!!!    !!!!       "
+
 
 def listOfAllVerbs(currentVerbs):
     res = currentVerbs
@@ -602,5 +629,5 @@ def gameLoop():
             continue
         evaluateAction(action, currentRoom)
 
-
-gameLoop();
+title()
+gameLoop()
