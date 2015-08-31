@@ -1,8 +1,22 @@
+from util import *
+
 _gameRooms = {}
 _currentRoomName = 'boboRoom'
+_currentRoomName = 'secretRoom' #####
 _inventory = {'monies':10}
 _suckedIt = 0
+_unMetAchievements = ['gotSword', 'gotDong', 'playCarnival', 'spicyRoom', 'deFuca']
+_metAchievements = []
+_achievementHints = {
+      'gotSword':     "Going alone is dangerous, but perhaps a friend can be in the caves."
+    , 'playCarnival': "A game of luck, a game of chance, makes a man healthy wealthy and wise."
+    , 'gotDong':      "What would make Bobo get the satisfaction he desires."
+    , 'spicyRoom':    "SPICYYYYYY! You'll need a normie key and a long, strong, key."
+    , 'deFuca':       "Giving a hint here would be pretty wrong-de-fuca."
+};
 
+
+_achievementsAquired = 0
 
 def currentRoom():
     return _gameRooms[_currentRoomName]
@@ -48,3 +62,31 @@ def youSuckedIt():
     if _suckedIt == 3:
         _inventory["wolfdong"] = None
 
+def markAchieved(achievement):
+    global _achievementsAquired
+
+    assert(achievement in _metAchievements or achievement in _unMetAchievements)
+
+    if not achievement in _metAchievements:
+        print "* " * 30
+        print_color('purple', "Awwww shiiiiit, you just achieved: %s.  Keep it up partna'" % achievement)
+        print "* " * 30
+        _achievementsAquired += 1
+        _unMetAchievements.remove(achievement)
+        _metAchievements.append(achievement)
+
+def achievmentCount():
+    return _achievementsAquired
+
+def achievmentHint(achievementId):
+    return _achievementHints[achievementId]
+
+def achievmentsPossible():
+    return len(_unMetAchievements) + len(_metAchievements)
+
+def nextHint():
+    if len(_unMetAchievements) == 0:
+        return "You got all the hussle to you boi!!!!"
+
+    ach = _unMetAchievements[0]
+    return _achievementHints[ach]

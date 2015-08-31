@@ -88,17 +88,20 @@ def caveDescription(room):
           "fires.  He looks like a friendly chap")
 
 
-def talkToMan(room):
+def talkToMan(gamestate):
+    room = gamestate.currentRoom()
     if not 'sword' in gamestate.inventory():
         say ("The man tells you that it is dangerous to go alone and to take this \n"
              "You acquire the wooden sword <uplifting, yet short, acquisation tune plays>.")
         gamestate.addToInventory('sword')
+        gamestate.markAchieved('gotSword')
     else:
         say ("The man tells you to get going.  He's old and the world is made for the young. \n"
              "He tells you that you should go kill things, but watch out for exploding barrels and \n"
              "stray HP Lovecraft beasts.")
 
-def killMan(room):
+def killMan(gamestate):
+    room = gamestate.currentRoom()
     print "You strike the man and steal his monies.  The world is cruel, but yet you are rewarded."
     gamestate.inventory()['monies'] += 200
     room['manDead'] = True
@@ -120,29 +123,34 @@ def playpenDescription(room):
     else:
         print "To the west is a locked door.  It has both a regular keyhole and another oddly shapped hole."
 
-def takeBall(room):
+def takeBall(gamestate):
+    room = gamestate.currentRoom()
     gamestate.addToInventory('ball')
     del(gamestate.room('playpenRoom')['actions']['take'])
     del(gamestate.room('playpenRoom')['actions']['bounce'])
     print "You take the ball.  The room suddenly seems less joy filled."
 
-def keyDoor(room):
+def keyDoor(gamestate):
+    room = gamestate.currentRoom()
     print "The key breaks as you turn it, but the door is partially unlocked!"
     if 'key' in gamestate.inventory():
         if 'key' in gamestate.inventory():
             gamestate.removeFromInventory('key')
             room['keyedDoor'] = True
     if 'dongedDoor' in room and 'keyedDoor' in room:
-        openDoor(room)
+        openDoor(gamestate)
 
-def dongDoor(room):
+def dongDoor(gamestate):
+    room = gamestate.currentRoom()
     print "The dong slips in all smooth and natural like."
     room['dongedDoor'] = True
     if 'dongedDoor' in room and 'keyedDoor' in room:
-        openDoor(room)
+        openDoor(gamestate)
 
-def openDoor(room):
+def openDoor(gamestate):
+    room = gamestate.currentRoom()
     print "The door swings open."
+    gamestate.markAchieved('spicyRoom')
     room['adjacent'].append((['west', 'door'], 'secretRoom'))
     
 # /////////////////////////////////////////////////////////////////////////////
@@ -150,6 +158,7 @@ def openDoor(room):
 # /////////////////////////////////////////////////////////////////////////////
 
 def kitchenDickDescrip(room):
+    room = gamestate.currentRoom()
     print "You are at the end of a long, strong, and oddly well hung road."
     print 'There is a sign to your right reading "Kitchen-Dick Road."'
     if not 'noEdwardo' in room:
@@ -157,7 +166,8 @@ def kitchenDickDescrip(room):
         print "Needless to say this dude looks totally legit.  But then again who can tell.  On thing you're"
         print "sure of is that this dude has no balls."
 
-def talkToEdwardo(room):
+def talkToEdwardo(gamestate):
+    room = gamestate.currentRoom()
     say("Ehhhh, ehhhhh, right up the pooftah.")
 
     if 'key' in gamestate.inventory():
@@ -165,22 +175,23 @@ def talkToEdwardo(room):
 
     say("Would you like to buy a key, only $200?")
     if(prompt("Buy the creepy dude's key? ") == 'y'):
-        print "The dude chuckles and hands you a key."
         moniesAmount = gamestate.inventory()['monies']
         if moniesAmount < 200:
             say("You trying to swindle me!")
             return
+        print "The dude chuckles and hands you a key."
         gamestate.inventory()['monies'] -= 200
         gamestate.addToInventory('key')
         room['edwardoGaveKey'] = True
     else:
         say("Hehehehe, I have a feeling you'll need it.")
 
-def noDeathToEdwardo(room):
+def noDeathToEdwardo(gamestate):
     say("Oh-ho-ho")
     print "Edwardo (the creepy dude) bobs and weaves his way out of your stubby, stabby, swords path."
 
-def edwardoJustNeedsSomeBalls(room):
+def edwardoJustNeedsSomeBalls(gamestate):
+    room = gamestate.currentRoom()
     print "Edwardo looks so happy playing with the balls.  Suddenly his trench-coat dissapears, his hair"
     print "unslickifies, his mustache dissappears.  He now takes on the appearance of an upstanding"
     print "gentlemen."
@@ -203,6 +214,46 @@ def edwardoJustNeedsSomeBalls(room):
     for use in toRemove:
         del(room['uses'][use])
 
+# /////////////////////////////////////////////////////////////////////////////
+# Secret Spicy Room 
+# /////////////////////////////////////////////////////////////////////////////
+
+def talkToSkelly(gamestate):
+    say("Ridde me these three and a reward will be yours he-he-he")
+    riddles = [
+          ("How does Juan-De-Fuca answer test questions?", "wrong")
+        , ("What does Juan-De-Fuca like to eat with Indian Food?", "naan")
+        , ("What does Juan-De-Fuca smoke his wacky-tobaccy out of?", "bong")
+        , ("What do you call a group of Juan-De-Fucas?", "throng")
+        , ("What kind of car does Juan-De-Fuca drive?", "honda")
+        , ("What does Juan-De-Fuca use to kill civvies?", "bomb")
+        , ("Who's Juan-De-Fuca's favorite Chinese dictator?", "mao zedong")
+    ]
+    choices = range(0, len(riddles))
+    
+    for i in xrange(0,3):
+        choiceNum = randint(0,len(choices)-1)
+        q = choices[choiceNum]
+        choices.remove(q)
+
+        question     = riddles[q][0]
+        expectAnswer = riddles[q][1]
+
+        say(question)
+        say("The answer is: <blank> de-fuca")
+        print "You answer> ",
+        gaveAnswer = raw_input()
+        gaveAnswer = gaveAnswer.lower()
+
+        if gaveAnswer in expectAnswer:
+            say("That's right %s de Fuca!" % expectAnswer)
+        else:
+            say("Wrong!  It's %s de Fuca!" % expectAnswer)
+            say("Begone scummy scummersons!")
+            return
+
+    say("Alright, you are truly a worthy advesary!")
+    gamestate.markAchieved('deFuca')
 
 # /////////////////////////////////////////////////////////////////////////////
 # Persistent actions
@@ -271,7 +322,7 @@ def use(room, nouns):
     if 'uses' in room:
         if (subject, objecto) in room['uses']:
             didIt = True
-            room['uses'][(subject, objecto)](room)
+            room['uses'][(subject, objecto)](gamestate)
 
     if not didIt:
         print "Don't know how to do that..."
@@ -282,12 +333,14 @@ def suckit(room, nouns):
         gamestate.youSuckedIt()
         if gamestate.howManySuckedIt() == 3:
             print "The legendary wolfdong has appeared in your inventory.\n(It looks like a normal dong shaft but its got a wolf head on the end with glowing eyes and its dripping acid saliva.)"
+            gamestate.markAchieved('gotDong')
     else:
         print "You might have a problem."
-        
-        
 
-PERSISTENT_VERBS = ["go","fight","look","exit","inventory","use", "suckit"]
+def hint(room, nouns):
+    print gamestate.nextHint()
+
+PERSISTENT_VERBS = ["go","fight","look","exit","inventory","use","suckit","hint"]
 PERSISTENT_NOUNS = ["north", "south", "west", "east"]
 PERSISTENT_ACTIONS = {   "go": go
                        , "fight":fight
@@ -296,6 +349,7 @@ PERSISTENT_ACTIONS = {   "go": go
                        , "inventory":inventory
                        , "use":use
                        , "suckit":suckit
+                       , "hint":hint
                      }
 
 # /////////////////////////////////////////////////////////////////////////////
@@ -414,10 +468,15 @@ def gameLoop():
         }
 
     secretRoom = {}
-    secretRoom['description'] = i("You're in the secret spicy room.  There's not much to do here for now.\n"
+    secretRoom['description'] = i("You're in the secret spicy room.  Standing in the middle is an animated skeleton\n"
+                                  "The skeleton seems friendly but you have a feeling this his wit may be a little dry.\n"
                                   "To the east an open door.")
     secretRoom['adjacent'] = [(['east', 'door'], 'playpenRoom')]
-    secretRoom['actions'] = {}
+    secretRoom['actions'] = {
+               "talk":      {   'none': i("Talk to who?")
+                              , 'skeleton': talkToSkelly
+                            }
+    }
     secretRoom['uses'] = {}
 
     outside = {}
@@ -439,8 +498,9 @@ def gameLoop():
     carnival = {}
     carnival['description'] = i("You come upon a merry carnival, with tiny ponies and tents and\n"
                                "bearded ladies and shit. A wiry carnie in brightly colored\n"
-                               "pantaloons with a raging but friendly-looking codpiece beckons you near him.\n")
-    carnival['adjacent'] = [     (['outdoors','forest'],'outside') ]
+                               "pantaloons with a raging but friendly-looking codpiece beckons you near him.\n"
+                               "The familiar meadow near Bob's hut is off to the east.")
+    carnival['adjacent'] = [(['east', 'outdoors','forest', 'outside', 'back'],'outside')]
     carnival['actions'] = \
         {  "play":     {    'none': i('Play what?')
                           , 'game': game
@@ -449,6 +509,7 @@ def gameLoop():
                            , 'man'    : talkToCarnie
                            , 'lady'   : talkToBeardedLadies
                            , 'ladies' : talkToBeardedLadies
+                           , 'none'   : i("Que?")
                        }
         }
 
@@ -522,7 +583,11 @@ def gameLoop():
             currentRoom["enemy"] = detect_enemy()
 
         print
-        print_color("hiyellow", "----[%s]%s" % (gamestate.nameOfCurrentRoom(), "-" * (80 - len(gamestate.nameOfCurrentRoom()))))
+        headerBar = "----[%s]%s(%3d/%3d)--" % (
+              gamestate.nameOfCurrentRoom()
+            , "-" * (80 - 17 - len(gamestate.nameOfCurrentRoom()))
+            , gamestate.achievmentCount(), gamestate.achievmentsPossible())
+        print_color("hiyellow", headerBar)
         print
         print "While walking along, you see %s, minding its own business"%currentRoom["enemy"].name
         currentRoom['description'](currentRoom)

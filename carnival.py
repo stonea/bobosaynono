@@ -40,6 +40,8 @@ def game(gamestate) :
     skill['bet_amount'] = bet_amount
     chance = game_of_chance(skill)
 
+    gamestate.markAchieved('playCarnival')
+
 def game_of_skill() :
     wrds = ("\"First the test of skill. I will give you five words and you must give them back \n"
            "to me in reverse order! The words will come and go quickly, so be sharp!. Get ready.")
