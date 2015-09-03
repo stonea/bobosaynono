@@ -1,0 +1,8 @@
+{"objects" :
+    "object_id" : {
+        "description" : ["description line 1","description line 2","..."]
+    },
+    "ball" : {
+        "description" : "not used yet"
+    }
+}

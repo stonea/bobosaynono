@@ -1,0 +1,27 @@
+{"rooms" :
+    {
+        "carnival" : {
+            "description" : ["You come upon a merry carnival, with tiny ponies and tents and",
+                             "bearded ladies and shit. A wiry carnie in brightly colored",
+                             "pantaloons with a raging but friendly-looking codpiece beckons you near him.",
+                             "The familiar meadow near Bob's hut is off to the east."],
+            "adjacent" : {
+                "outside" : ["outside","east","outdoors","forest"]
+            },
+            "actions" : {
+                "play" : {
+                    "none" : "Play what?",
+                    "game" : "%carnival.game"
+                },
+                "talk" : {
+                    "carnie" : "%carnival.talkToCarnie",
+                    "man" : "%carnival.talkToCarnie",
+                    "lady" : "%carnival.talkToBeardedLadies",
+                    "ladies" : "%carnival.talkToBeardedLadies",
+                    "none": "Que?"
+                }
+            }
+        }
+    }
+}
+

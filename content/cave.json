@@ -1,0 +1,22 @@
+{"rooms" :
+    {
+        "cave" : {
+            "description" : "%caveDescription",
+            "adjacent" : {
+                "outside" : ["outside","back","outdoors"]
+            },
+            "actions" : {
+                "talk" : {
+                    "none" : "Talk to whom?",
+                    "man" : "%talkToMan"
+                }
+            },
+            "uses" : [
+                [["ball","man"], "The man bounces the ball back your way: what fun!"],
+                [["monies","man"], "I don't need to be bribed, sonny boy."],
+                [["sword","man"], "%killMan"]
+            ]
+        }
+    }
+}
+

@@ -1,0 +1,73 @@
+{"rooms" :
+    {
+        "boboHut" : {
+            "description" : ["You are in a room with Bobo. There is nothing else but Bobo.",
+                            "There's an open door behind you (south). There is a passage to the north."],
+            "adjacent" : {
+                "playpen" : ["north","passage","playpen"],
+                "outside" : ["south","door","behind","backwards","outside"]
+            },
+            "actions" : {
+                "smirk": {
+                    "none" : "Smirk at who?",
+                    "bobo" : "Bobo smirks back at you"
+                },
+                "talk" : {
+                    "none" : "Talk to who?",
+                    "bobo" : "%talkToBobo"
+                },
+                "play" : {
+                    "none" : "With yourself?!",
+                    "bobo" : "%play"
+                }
+            },
+            "uses" : [
+                [["ball","bobo"], "Bobo is extremly happy playing with the ball!"],
+                [["monies","bobo"], "Bobo is beyond the kind of material wealth that makes humans happy."],
+                [["sword","bobo"], "Nooooo!!!!! You could never hurt Bobo."]
+            ]
+        },
+        "playpen" : {
+            "description" : "%playpenDescription",
+            "adjacent" : {
+                "boboHut" : ["south", "passage"]
+            },
+            "actions" : {
+                "bounce" : {
+                    "none": "Bounce what?",
+                    "ball": "The ball bounces: what fun!"
+                 },
+                 "take": {
+                    "none": "Take what?",
+                    "ball": "%takeBall"
+                 }
+            }, 
+            "uses" : [
+                     [["key", "door"], "%keyDoor"],
+                     [["key", "keyhole"], "%keyDoor"],
+                     [["key", "hole"], "The key is clearly inadequate for this hole."],
+                     [["wolfdong", "door"], "%dongDoor"],
+                     [["wolfdong", "hole"], "%dongDoor"],
+                     [["wolfdong", "keyhole"], "Using the wolfdong on the keyhole would do irreparable damage to the keyhole."],
+                     [["dong", "door"], "%dongDoor"],
+                     [["dong", "hole"], "%dongDoor"],
+                     [["dong", "keyhole"], "Using the wolfdong on the keyhole would do irreparable damage to the keyhole."]
+            ]
+        },
+        "secretRoom" : {
+            "description" : ["You're in the secret spicy room.  Standing in the middle is an animated skeleton",
+                             "The skeleton seems friendly but you have a feeling this his wit may be a little dry.",
+                             "To the east an open door."],
+            "adjacent" : {
+                "playpen" : ["east", "door"]
+            },
+            "actions" : {
+                    "talk": {
+                        "none": "Talk to who?",
+                        "skeleton": "%talkToSkelly"
+                    }
+            },
+            "uses" : []
+        }
+    }
+}

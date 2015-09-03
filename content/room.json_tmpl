@@ -1,0 +1,52 @@
+{"rooms" :
+    {
+        "room_id" : {
+            "description" : ["description line 1",
+                             "description line 2",
+                             "..."],
+            "adjacent" : {
+                "adjacent_room_id_1" : ["synonyms","for","direction"],
+                "adjacent_room_id_2" : ["synonym"]
+            },
+            "actions" : {
+                "action_name" : {
+                    "object_name_1" : ["text of response for performing <action_name> on <object_name> line 1","line 2..."],
+                    "object_name_2" : "%[module.]functionName # name of [optional module] and function to perform this action",
+                    "none": "special object name for when no object is provided"
+                }
+            },
+            "uses" : [
+                [["object1","object2"], "text of response for performing <action_name> on <object_name>"],
+                [["object1","object2"], "%[module.]functionName # name of [optional module] and function to perform this action"],
+                [["object1","none"], "special object name for when no object is provided"]
+            ]
+        },
+        "boboHut" : {
+            "description" : ["You are in a room with Bobo. There is nothing else but Bobo.",
+                            "There's an open door behind you (south). There is a passage to the north."],
+            "adjacent" : {
+                "playpen" : ["north","passage","playpen"],
+                "outside" : ["south","door","behind","backwards","outside"]
+            },
+            "actions" : {
+                "smirk": {
+                    "none" : "Smirk at who?",
+                    "bobo" : "Bobo smirks back at you"
+                },
+                "talk" : {
+                    "none" : "Talk to who?",
+                    "bobo" : "%talkToBobo"
+                },
+                "play" : {
+                    "none" : "With yourself?!",
+                    "bobo" : "%play"
+                }
+            },
+            "uses" : [
+                [["ball","bobo"], "Bobo is extremly happy playing with the ball!"],
+                [["monies","bobo"], "Bobo is beyond the kind of material wealth that makes humans happy."],
+                [["sword","bobo"], "Nooooo!!!!! You could never hurt Bobo."]
+            ]
+        }
+    }
+}

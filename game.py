@@ -1,13 +1,19 @@
+import glob
+import json
 import os
+import re
 import sys
 import time
+
+from collections import defaultdict
 from random import random, randint, sample
+
 import gamestate
 
-from util import say, print_color
+from util import *
 
-from carnival import game, talkToCarnie, talkToBeardedLadies
-from rpg import detect_enemy, fight, prompt
+import carnival
+import rpg
 
 # /////////////////////////////////////////////////////////////////////////////
 # Bobo's room
@@ -34,13 +40,13 @@ def talkToBobo(gamestate,*args,**kwargs):
 
 
     print "What would you like to say to Bobo?"
-    question = raw_input()
+    question = get_input()
     print boboResponses[randint(0,len(boboResponses)-1)]
 
     youLikey = 'x'
     while youLikey not in 'yn' :
         print "Do you like Bobo's response? [y/n]"
-        youLikey = raw_input().lower()
+        youLikey = get_input().lower()
 
     print "Fine, Bobo %s"%sample(boboActivities[youLikey],1)[0]
 
@@ -58,7 +64,7 @@ def play(gamestate,*args,**kwargs) :
         os.system("clear")
         print '\n'.join(''.join(_) for _ in board)
         print 'Control Bobo! [jkhl]'
-        move = raw_input()
+        move = get_input()
         if move not in 'jkhl' :
             continue
         elif move == 'j' :
@@ -126,8 +132,8 @@ def playpenDescription(room):
 def takeBall(gamestate):
     room = gamestate.currentRoom()
     gamestate.addToInventory('ball')
-    del(gamestate.room('playpenRoom')['actions']['take'])
-    del(gamestate.room('playpenRoom')['actions']['bounce'])
+    del(gamestate.room('playpen')['actions']['take'])
+    del(gamestate.room('playpen')['actions']['bounce'])
     print "You take the ball.  The room suddenly seems less joy filled."
 
 def keyDoor(gamestate):
@@ -151,7 +157,7 @@ def openDoor(gamestate):
     room = gamestate.currentRoom()
     print "The door swings open."
     gamestate.markAchieved('spicyRoom')
-    room['adjacent'].append((['west', 'door'], 'secretRoom'))
+    room['adjacent']['secretRoom'] = ['west', 'door']
     
 # /////////////////////////////////////////////////////////////////////////////
 # KitchenDickTip
@@ -242,7 +248,7 @@ def talkToSkelly(gamestate):
         say(question)
         say("The answer is: <blank> de-fuca")
         print "You answer> ",
-        gaveAnswer = raw_input()
+        gaveAnswer = get_input()
         gaveAnswer = gaveAnswer.lower()
 
         if gaveAnswer in expectAnswer:
@@ -264,13 +270,14 @@ def go(room, direction):
     direction = direction[0]
     room = gamestate.currentRoom()
     adjacencies = room['adjacent']
-    for (expectedDirs, exitsTo) in adjacencies:
+    for exitsTo,expectedDirs in adjacencies.items():
         for expectedDir in expectedDirs:
             if(expectedDir == direction):
                 gamestate.moveTo(exitsTo)
                 return
 
     print "Can't go that way."
+    if gamestate.DEBUG : sys.exit(1)
 
 
 def look(room, noun):
@@ -280,7 +287,7 @@ def look(room, noun):
     if len(adjacencies) == 0:
         print "There are no adjacent rooms"
 
-    print "You may get to an adjacent location with one of the magic words:  %s" % ', '.join(dirs[0] for (dirs,room) in adjacencies)
+    print "You may get to an adjacent location with one of the magic words:  %s" % ', '.join([v[0] for v in adjacencies.values()])
 
 def exit(room, noun):
     if(prompt("Really exit? ") == 'y'):
@@ -326,6 +333,7 @@ def use(room, nouns):
 
     if not didIt:
         print "Don't know how to do that..."
+        if gamestate.DEBUG : sys.exit(1)
 
 def suckit(room, nouns):
     if gamestate.howManySuckedIt() < 3:
@@ -343,7 +351,7 @@ def hint(room, nouns):
 PERSISTENT_VERBS = ["go","fight","look","exit","inventory","use","suckit","hint"]
 PERSISTENT_NOUNS = ["north", "south", "west", "east"]
 PERSISTENT_ACTIONS = {   "go": go
-                       , "fight":fight
+                       , "fight":rpg.fight
                        , "look":look
                        , "exit":exit
                        , "inventory":inventory
@@ -417,10 +425,12 @@ def evaluateAction(cmd, room):
             actions[verb][noun](gamestate)
         else:
             print "Don't know how to do that..."
+            if gamestate.DEBUG : sys.exit(1)
     elif verb in PERSISTENT_ACTIONS:
         PERSISTENT_ACTIONS[verb](room, nouns)
     else:
         print "Don't know how to do that..."
+        if gamestate.DEBUG : sys.exit(2)
 
 
 def i(s) :
@@ -439,8 +449,8 @@ def computeSetOfLegalNounsForRoom(room, legalVerbs):
                 legalNouns.add(noun)
 
     # Add adjacencies
-    for adjacency in room['adjacent']:
-        for direction in adjacency[0]:
+    for adjacency in room['adjacent'].values() :
+        for direction in adjacency:
             legalNouns.add(direction)
 
     # Add any use targets
@@ -455,179 +465,108 @@ def computeSetOfLegalNounsForRoom(room, legalVerbs):
 
 
 def gameLoop():
-    boboRoom = {}
-    boboRoom['description'] = i("You are in a room with Bobo. There is nothing else but Bobo.\n" 
-                              "There's an open door behind you (south). There is a passage to the north.")
-    boboRoom['adjacent'] = [  (['north', 'passage', 'playpen'], 'playpenRoom')
-                            , (['south', 'door', 'behind', 'backwards', 'outside'], 'outside')]
-    boboRoom['actions'] = \
-        {  "smirk":     {   'none': i('Smirk at who?')
-                          , 'bobo': i("Bobo smirks back at you")
-                        }
-         , "talk":      {   'none': i("Talk to who?")
-                          , 'bobo': talkToBobo
-                        }
-         , "play":      {   'none': i("With yourself?!")
-                          , 'bobo': play
-                        }
-        }
-    boboRoom['uses'] = \
-        {    ('ball', 'bobo'):  i("Bobo is extremly happy playing with the ball!")
-           , ('monies', 'bobo'): i("Bobo is beyond the kind of material wealth that makes humans happy.")
-           , ('sword', 'bobo'): i("Nooooo!!!!! You could never hurt Bobo.")
-        }
 
-    playpenRoom = {}
-    playpenRoom['description'] = playpenDescription
-    playpenRoom['adjacent'] = [(['south', 'passage'], 'boboRoom')]
-    playpenRoom['actions'] = \
-        {  "bounce":     {   'none': i('Bounce what?')
-                           , 'ball': i("The ball bounces: what fun!")
-                         }
-         , "take":       {   'none': i("Take what?")
-                           , 'ball': takeBall
-                         }
-        } 
-    playpenRoom['uses'] = {
-             ('key', 'door'):      keyDoor
-           , ('wolfdong', 'door'): dongDoor
-           , ('dong', 'door'):     dongDoor
-        }
-
-    secretRoom = {}
-    secretRoom['description'] = i("You're in the secret spicy room.  Standing in the middle is an animated skeleton\n"
-                                  "The skeleton seems friendly but you have a feeling this his wit may be a little dry.\n"
-                                  "To the east an open door.")
-    secretRoom['adjacent'] = [(['east', 'door'], 'playpenRoom')]
-    secretRoom['actions'] = {
-               "talk":      {   'none': i("Talk to who?")
-                              , 'skeleton': talkToSkelly
-                            }
-    }
-    secretRoom['uses'] = {}
-
-    outside = {}
-    outside['description'] = i("You are in the great oudoors. There's lots of trees and clouds\n" 
-                             "and chirping birds and shit. " 
-                             "Looking around you see the entrance to Bobo's hut to the north,\n" 
-                             "there is a cave off the east,"
-                             "and there is a carnival off to the west.\n"
-                             "To the south is a long, strong, and oddly well hung road.\n") 
-    outside['adjacent'] = [   (['hut', 'entrance'], 'boboRoom')
-                            , (['cave', 'east'], 'cave')
-                            , (['carnival','west'],'carnival') 
-                            , (['road','south'],'kitchenDick') 
-                          ]
-    outside['actions'] = \
-        {
-        }
-
-    carnival = {}
-    carnival['description'] = i("You come upon a merry carnival, with tiny ponies and tents and\n"
-                               "bearded ladies and shit. A wiry carnie in brightly colored\n"
-                               "pantaloons with a raging but friendly-looking codpiece beckons you near him.\n"
-                               "The familiar meadow near Bob's hut is off to the east.")
-    carnival['adjacent'] = [(['east', 'outdoors','forest', 'outside', 'back'],'outside')]
-    carnival['actions'] = \
-        {  "play":     {    'none': i('Play what?')
-                          , 'game': game
-                         }
-        ,  "talk":     {     'carnie' : talkToCarnie
-                           , 'man'    : talkToCarnie
-                           , 'lady'   : talkToBeardedLadies
-                           , 'ladies' : talkToBeardedLadies
-                           , 'none'   : i("Que?")
-                       }
-        }
-
-    cave = {}
-    cave['description'] = caveDescription
-    cave['adjacent'] = [(['outside', 'back', 'outside', 'outdoors'], 'outside')]
-    cave['actions'] = \
-        {
-           "talk":      {   'none': i("Talk to who?")
-                          , 'man': talkToMan
-                        }
-        }
-    cave['uses'] = \
-        {    ('ball', 'man'):  i("The man bounces the ball back your way: what fun!")
-           , ('monies', 'man'): i("I don't need to be bribed sonny boy.")
-           , ('sword', 'man'): killMan
-        }
-
-    kitchenDick = {}
-    kitchenDick['description'] = i("You are standing in the middle of a long, strong, and oddly well hung road.\n"
-                                   "The road reaches to the north and to the south.")
-    kitchenDick['adjacent'] = [   (['north'], 'outside')
-                                , (['south'], 'kitchenDickTip')
-                              ]
-    kitchenDick['actions'] = \
-        {
-        }
-    kitchenDick['uses'] = \
-        {
-        }
-
-    kitchenDickTip = {}
-    kitchenDickTip['description'] = kitchenDickDescrip
-    kitchenDickTip['adjacent'] = [  (['north'], 'kitchenDick')
-                                 ]
-    kitchenDickTip['actions'] = \
-        {
-           "talk":      {   'none': i("Talk to who?")
-                          , 'man': talkToEdwardo
-                          , 'mustachioed': talkToEdwardo
-                          , 'dude': talkToEdwardo
-                        }
-        }
-    kitchenDickTip['uses'] = \
-        {
-               ('sword', 'man'): noDeathToEdwardo
-             , ('sword', 'dude'): noDeathToEdwardo
-             , ('sword', 'mustachiod'): noDeathToEdwardo
-             , ('ball', 'man'): edwardoJustNeedsSomeBalls
-             , ('ball', 'dude'): edwardoJustNeedsSomeBalls
-             , ('ball', 'mustachiod'): edwardoJustNeedsSomeBalls
-
-        }
-
-    gamestate.addRoom('boboRoom', boboRoom)
-    gamestate.addRoom('playpenRoom', playpenRoom)
-    gamestate.addRoom('outside', outside)
-    gamestate.addRoom('cave', cave)
-    gamestate.addRoom('carnival', carnival)
-    gamestate.addRoom('kitchenDick', kitchenDick)
-    gamestate.addRoom('kitchenDickTip', kitchenDickTip)
-    gamestate.addRoom('secretRoom', secretRoom)
+    load_content()
 
     while True:
         currentRoom    = gamestate.currentRoom()
         currentActions = currentRoom['actions']
         currentVerbs   = currentActions.keys()
         if "enemy" not in currentRoom :
-            currentRoom["enemy"] = detect_enemy()
+            currentRoom["enemy"] = rpg.detect_enemy()
         elif currentRoom["enemy"].defeated :
-            currentRoom["enemy"] = detect_enemy()
+            currentRoom["enemy"] = rpg.detect_enemy()
 
         print
         headerBar = "----[%s]%s(%3d/%3d)--" % (
               gamestate.nameOfCurrentRoom()
             , "-" * (80 - 17 - len(gamestate.nameOfCurrentRoom()))
             , gamestate.achievmentCount(), gamestate.achievmentsPossible())
-        print_color("hiyellow", headerBar)
+        hiyellow(headerBar)
         print
-        print "While walking along, you see %s, minding its own business"%currentRoom["enemy"].name
         currentRoom['description'](currentRoom)
-        print ""
-        print_color('cyan', "You can do things. You can always:  %s" % ', '.join(PERSISTENT_VERBS))
-        print_color('cyan', "In here you can:  %s" % ', '.join(currentVerbs))
+        print
+        red("While walking along, you see %s, minding its own business"%currentRoom["enemy"].name)
+        print
+        cyan("You can do things. You can always:  %s" % ', '.join(PERSISTENT_VERBS))
+        cyan("In here you can:  %s" % ', '.join(currentVerbs))
         print '>', 
-        command = raw_input()
+        command = get_input()
         print
         action = parseCommand(command, currentRoom)
         if action == None:
             continue
         evaluateAction(action, currentRoom)
 
-title()
-gameLoop()
+def functify(st) :
+    if st.startswith('%') :
+        return eval(st[1:])
+    else :
+        return i(st)
+
+def deref(d,dk=None) :
+
+    # special field handling
+    if dk == u"description" and isinstance(d,list) :
+        d = '\n'.join(d)
+    if dk == u'uses' :
+        d = dict([(tuple(objs),functify(res)) for objs,res in d])
+
+    if isinstance(d,(dict,defaultdict)) :
+        for k,v in d.items() :
+            d[k] = deref(v,k)
+    elif isinstance(d,(str,unicode)) :
+        d = functify(d)
+
+    return d
+
+def load_content() :
+
+    content_fns = glob.glob("content/*.json")
+
+    content_d = defaultdict(dict)
+
+    top_level_keys = ("rooms","objects")
+
+    for fn in content_fns :
+        c_d = json.load(open(fn))
+        for k in top_level_keys :
+            content_d[k].update(c_d.get(k,{}))
+
+    content_d = deref(content_d)
+
+    for room_name,room in content_d["rooms"].items() :
+        room.setdefault("adjacent",{})
+        room.setdefault("actions",{})
+        room.setdefault("uses",[])
+        gamestate.addRoom(room_name,room)
+
+    return content_d
+
+get_input = raw_input
+def get_std_input() :
+    try :
+        l = sys.stdin.readline().strip()
+        # get rid of any comments on the line
+        l = re.sub('#.*$','',l)
+    except Exception, e :
+        raise e
+        exit(1)
+    sys.stdout.write(" "+l)
+    sys.stdout.flush()
+    return l.strip()
+
+def choose_input() :
+    import select
+
+    global get_input
+
+    if select.select([sys.stdin,],[],[],0.0)[0]:
+        get_input = get_std_input
+        gamestate.DEBUG = True
+
+
+if __name__ == "__main__" :
+    title()
+    choose_input()
+    gameLoop()
