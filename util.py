@@ -8,7 +8,6 @@ def prompt(q,opts=['y','n']) :
         resp = raw_input().lower()
     return resp
 
-
 _ascii = {  'blue': '\033[0;34m'
            , 'yellow': '\033[0;33m'
            , 'green': '\033[0;32m'

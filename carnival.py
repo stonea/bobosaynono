@@ -3,16 +3,14 @@ import os
 import time
 import gamestate
 from random import random, sample
-from util import say
-
-from rpg import prompt
+from util import say, prompt
 
 def talkToCarnie(room) :
     say ("\"Care to test your luck and your skill at a game that tests your luck\n"
            "and skill?\" he says, \"For indeed the two go hand in hand.\"")
 
 def talkToBeardedLadies(room):
-    print "I a gruff voice the lady says:"
+    print "In a gruff voice the lady says:"
     say ('"Nice to meet you."')
 
 def game(gamestate) :
