@@ -1,7 +1,7 @@
 from util import *
 
 _gameRooms = {}
-_currentRoomName = 'boboRoom'
+_currentRoomName = 'boboHut'
 _inventory = {'monies':10}
 _suckedIt = 0
 _unMetAchievements = ['gotSword', 'gotDong', 'playCarnival', 'spicyRoom', 'deFuca']
