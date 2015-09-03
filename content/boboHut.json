@@ -44,8 +44,14 @@
             }, 
             "uses" : [
                      [["key", "door"], "%keyDoor"],
+                     [["key", "keyhole"], "%keyDoor"],
+                     [["key", "hole"], "The key is clearly inadequate for this hole."],
                      [["wolfdong", "door"], "%dongDoor"],
-                     [["dong", "door"], "%dongDoor"]
+                     [["wolfdong", "hole"], "%dongDoor"],
+                     [["wolfdong", "keyhole"], "Using the wolfdong on the keyhole would do irreparable damage to the keyhole."],
+                     [["dong", "door"], "%dongDoor"],
+                     [["dong", "hole"], "%dongDoor"],
+                     [["dong", "keyhole"], "Using the wolfdong on the keyhole would do irreparable damage to the keyhole."]
             ]
         },
         "secretRoom" : {
