@@ -1,13 +1,7 @@
 import time
 from random import randint, sample
 import gamestate
-
-def prompt(q,opts=['y','n']) :
-    resp = "nopenopenope"
-    while resp not in opts :
-        print q+" [%s]"%''.join(opts)
-        resp = raw_input().lower()
-    return resp
+from util import prompt
 
 class Actor(object) :
     def __init__(self,name,stats) :
