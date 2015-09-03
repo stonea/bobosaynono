@@ -1,5 +1,6 @@
 from util import *
 
+DEBUG=False
 _gameRooms = {}
 _currentRoomName = 'boboHut'
 _inventory = {'monies':10}

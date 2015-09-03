@@ -1,6 +1,7 @@
 import glob
 import json
 import os
+import re
 import sys
 import time
 
@@ -39,13 +40,13 @@ def talkToBobo(gamestate,*args,**kwargs):
 
 
     print "What would you like to say to Bobo?"
-    question = raw_input()
+    question = get_input()
     print boboResponses[randint(0,len(boboResponses)-1)]
 
     youLikey = 'x'
     while youLikey not in 'yn' :
         print "Do you like Bobo's response? [y/n]"
-        youLikey = raw_input().lower()
+        youLikey = get_input().lower()
 
     print "Fine, Bobo %s"%sample(boboActivities[youLikey],1)[0]
 
@@ -63,7 +64,7 @@ def play(gamestate,*args,**kwargs) :
         os.system("clear")
         print '\n'.join(''.join(_) for _ in board)
         print 'Control Bobo! [jkhl]'
-        move = raw_input()
+        move = get_input()
         if move not in 'jkhl' :
             continue
         elif move == 'j' :
@@ -156,7 +157,7 @@ def openDoor(gamestate):
     room = gamestate.currentRoom()
     print "The door swings open."
     gamestate.markAchieved('spicyRoom')
-    room['adjacent'].append((['west', 'door'], 'secretRoom'))
+    room['adjacent']['secretRoom'] = ['west', 'door']
     
 # /////////////////////////////////////////////////////////////////////////////
 # KitchenDickTip
@@ -247,7 +248,7 @@ def talkToSkelly(gamestate):
         say(question)
         say("The answer is: <blank> de-fuca")
         print "You answer> ",
-        gaveAnswer = raw_input()
+        gaveAnswer = get_input()
         gaveAnswer = gaveAnswer.lower()
 
         if gaveAnswer in expectAnswer:
@@ -276,6 +277,7 @@ def go(room, direction):
                 return
 
     print "Can't go that way."
+    if gamestate.DEBUG : sys.exit(1)
 
 
 def look(room, noun):
@@ -331,6 +333,7 @@ def use(room, nouns):
 
     if not didIt:
         print "Don't know how to do that..."
+        if gamestate.DEBUG : sys.exit(1)
 
 def suckit(room, nouns):
     if gamestate.howManySuckedIt() < 3:
@@ -422,10 +425,12 @@ def evaluateAction(cmd, room):
             actions[verb][noun](gamestate)
         else:
             print "Don't know how to do that..."
+            if gamestate.DEBUG : sys.exit(1)
     elif verb in PERSISTENT_ACTIONS:
         PERSISTENT_ACTIONS[verb](room, nouns)
     else:
         print "Don't know how to do that..."
+        if gamestate.DEBUG : sys.exit(2)
 
 
 def i(s) :
@@ -486,12 +491,18 @@ def gameLoop():
         cyan("You can do things. You can always:  %s" % ', '.join(PERSISTENT_VERBS))
         cyan("In here you can:  %s" % ', '.join(currentVerbs))
         print '>', 
-        command = raw_input()
+        command = get_input()
         print
         action = parseCommand(command, currentRoom)
         if action == None:
             continue
         evaluateAction(action, currentRoom)
+
+def functify(st) :
+    if st.startswith('%') :
+        return eval(st[1:])
+    else :
+        return i(st)
 
 def deref(d,dk=None) :
 
@@ -499,16 +510,13 @@ def deref(d,dk=None) :
     if dk == u"description" and isinstance(d,list) :
         d = '\n'.join(d)
     if dk == u'uses' :
-        d = dict([(tuple(objs),i(res)) for objs,res in d])
+        d = dict([(tuple(objs),functify(res)) for objs,res in d])
 
     if isinstance(d,(dict,defaultdict)) :
         for k,v in d.items() :
             d[k] = deref(v,k)
     elif isinstance(d,(str,unicode)) :
-        if d.startswith('%') :
-            d = eval(d[1:])
-        else :
-            d = i(d)
+        d = functify(d)
 
     return d
 
@@ -535,6 +543,30 @@ def load_content() :
 
     return content_d
 
+get_input = raw_input
+def get_std_input() :
+    try :
+        l = sys.stdin.readline().strip()
+        # get rid of any comments on the line
+        l = re.sub('#.*$','',l)
+    except Exception, e :
+        raise e
+        exit(1)
+    sys.stdout.write(" "+l)
+    sys.stdout.flush()
+    return l.strip()
+
+def choose_input() :
+    import select
+
+    global get_input
+
+    if select.select([sys.stdin,],[],[],0.0)[0]:
+        get_input = get_std_input
+        gamestate.DEBUG = True
+
+
 if __name__ == "__main__" :
     title()
+    choose_input()
     gameLoop()

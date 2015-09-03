@@ -32,6 +32,7 @@ def game(gamestate) :
                 raise e
             except :
                 print ("\"An integer, Dumas.\"")
+                if gamestate.DEBUG : sys.exit(1)
         print("\"A bold bet, %d. Now let's see the mettle of your kettle!\""%bet_amount)
 
     skill = game_of_skill()
