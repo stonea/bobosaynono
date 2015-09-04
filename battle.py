@@ -1,14 +1,15 @@
-import time
+import time, json, sys, art
 from random import randint, sample
 import gamestate
 from util import prompt
 
+_enemies = {}
+_enemy_odds_list = []
+
 class Actor(object) :
-    def __init__(self,name,stats) :
-        self.name = name
-        self.hp = stats.hp
-        self.base_damage = stats.base_damage
-        self.value = stats.value
+    def __init__(self,template) :
+        for k,v in template.iteritems():
+            setattr(self, k, v)
         self.defeated = False
 
     def hit(self,damage) :
@@ -19,53 +20,38 @@ class Actor(object) :
     def attack(self) :
         return self.base_damage+randint(0,3)
 
-class Stats(object) :
-    def __init__(self,hp,base_damage,value=0) :
-        self.hp = hp
-        self.base_damage = base_damage
-        self.value = value
-
-enemies = {"the wumpus": Stats(100,15,10),
-           "a kitty witty": Stats(150,3,3),
-           "Chthuluh": Stats(1000000,1000000,1000000),
-           "a ladybug": Stats(100,0,1),
-           "an exploding barrel": Stats(26,1000000,5)
-          }
-enemy_odds = {"the wumpus": 5,
-              "a kitty witty": 8,
-              "Chthuluh": 1,
-              "a ladybug": 3,
-              "an exploding barrel": 3
-             }
-enemy_odds_list = []
-for k,v in enemy_odds.items() :
-    enemy_odds_list.extend([k]*v)
+def add_enemy(name, enemy):
+    _enemies[name] = enemy
+    _enemy_odds_list.extend([name]*enemy['odds'])
 
 def detect_enemy() :
-    enemy_type = sample(enemy_odds_list,1)[0]
-    enemy = Actor(enemy_type,enemies[enemy_type])
+    enemy_type = sample(_enemy_odds_list,1)[0]
+    enemy = Actor(_enemies[enemy_type])
     return enemy
 
 def fight(room, noun) :
     room = gamestate.currentRoom()
 
-    your_stats = Stats(100,20)
-    bobos_stats = Stats(25,5)
+    your_stats = {'name': "you", 'hp': 100, 'base_damage': 20}
+    bobos_stats = {'name': "Bobo", 'hp': 25, 'base_damage': 5}
 
-    you = Actor("you",your_stats)
-    bobo = Actor("Bobo",bobos_stats)
+    you = Actor(your_stats)
+    bobo = Actor(bobos_stats)
     enemy = room["enemy"]
 
     if enemy.defeated :
         print "The adage 'beating %s that is already dead' comes to mind"%enemy.name
         return
 
-    print "Ohkaaaaaaaay, you decide to attack the %s"%enemy.name
+    print "Ohkaaaaaaaay, you decide to attack the %s"%enemy.name[0]
+    print
+    print eval("art.%s" % enemy.art[0])
+    print
 
     contestants = [you,bobo]
 
     while not enemy.defeated :
-        print "[ You HP=%d, Bobo HP=%d ] vs [ %s HP=%d ]"%(you.hp,bobo.hp,enemy.name,enemy.hp)
+        print "[ You HP=%d, Bobo HP=%d ] vs [ %s HP=%d ]"%(you.hp,bobo.hp,enemy.name[0],enemy.hp)
 
         you_attack = you.attack()
         print "You attack for %d damage"%you_attack
@@ -81,7 +67,7 @@ def fight(room, noun) :
 
         enemy_attack = enemy.attack()
         enemy_attack_whom = sample(contestants,1)[0]
-        print "%s attacks %s for %d damage"%(enemy.name,enemy_attack_whom.name,enemy_attack)
+        print "%s attacks %s for %d damage"%(enemy.name[0],enemy_attack_whom.name[0],enemy_attack)
         enemy_attack_whom.hit(enemy_attack)
 
         if you.defeated :
@@ -100,7 +86,7 @@ def fight(room, noun) :
     if enemy.defeated :
         print "You slew your foe!"
         if enemy.value != 0 :
-            print "ERMAGERD %s dropped %d monies!!1!1!!"%(enemy.name,enemy.value)
+            print "ERMAGERD %s dropped %d monies!!1!1!!"%(enemy.name[0],enemy.value)
             gamestate.addToInventory("monies",gamestate.inventory()['monies']+enemy.value)
 
     if you.defeated :
@@ -113,6 +99,6 @@ def fight(room, noun) :
 
     print "But this is MAGIC BOBO WORLD AND EVERYTHING IS BACK AS IT WAS"
 
-if __name__ == '__main__' :
-    while True :
-        fight(Stats(100,20),Stats(25,5))
+#if __name__ == '__main__' :
+#    while True :
+#        fight(Stats(100,20),Stats(25,5))

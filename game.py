@@ -1,10 +1,5 @@
-import glob
-import json
-import os
-import re
-import sys
-import time
-
+import glob, json, os, re, sys, time
+from pprint import pprint
 from collections import defaultdict
 from random import random, randint, sample
 
@@ -13,7 +8,7 @@ import gamestate
 from util import *
 
 import carnival
-import rpg
+import battle
 
 # /////////////////////////////////////////////////////////////////////////////
 # Bobo's room
@@ -351,7 +346,7 @@ def hint(room, nouns):
 PERSISTENT_VERBS = ["go","fight","look","exit","inventory","use","suckit","hint"]
 PERSISTENT_NOUNS = ["north", "south", "west", "east"]
 PERSISTENT_ACTIONS = {   "go": go
-                       , "fight":rpg.fight
+                       , "fight":battle.fight
                        , "look":look
                        , "exit":exit
                        , "inventory":inventory
@@ -473,9 +468,9 @@ def gameLoop():
         currentActions = currentRoom['actions']
         currentVerbs   = currentActions.keys()
         if "enemy" not in currentRoom :
-            currentRoom["enemy"] = rpg.detect_enemy()
+            currentRoom["enemy"] = battle.detect_enemy()
         elif currentRoom["enemy"].defeated :
-            currentRoom["enemy"] = rpg.detect_enemy()
+            currentRoom["enemy"] = battle.detect_enemy()
 
         print
         headerBar = "----[%s]%s(%3d/%3d)--" % (
@@ -486,7 +481,7 @@ def gameLoop():
         print
         currentRoom['description'](currentRoom)
         print
-        red("While walking along, you see %s, minding its own business"%currentRoom["enemy"].name)
+        red("While walking along, you see %s, minding its own business"%currentRoom["enemy"].name[0])
         print
         cyan("You can do things. You can always:  %s" % ', '.join(PERSISTENT_VERBS))
         cyan("In here you can:  %s" % ', '.join(currentVerbs))
@@ -521,14 +516,15 @@ def deref(d,dk=None) :
     return d
 
 def load_content() :
-
-    content_fns = glob.glob("content/*.json")
+    content_filenames = []
+    for dir, _, _ in os.walk("content"):
+        content_filenames.extend(glob.glob("%s/*.json" % dir))
 
     content_d = defaultdict(dict)
 
-    top_level_keys = ("rooms","objects")
+    top_level_keys = ("rooms","objects","enemies")
 
-    for fn in content_fns :
+    for fn in content_filenames :
         c_d = json.load(open(fn))
         for k in top_level_keys :
             content_d[k].update(c_d.get(k,{}))
@@ -540,6 +536,9 @@ def load_content() :
         room.setdefault("actions",{})
         room.setdefault("uses",[])
         gamestate.addRoom(room_name,room)
+
+    for enemy_id,enemy in content_d["enemies"].items() :
+        battle.add_enemy(enemy_id, enemy)
 
     return content_d
 
