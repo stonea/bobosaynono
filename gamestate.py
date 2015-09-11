@@ -2,6 +2,7 @@ from util import *
 
 DEBUG=False
 _gameRooms = {}
+_enemies = {}
 _currentRoomName = 'boboHut'
 _inventory = {'monies':10}
 _suckedIt = 0

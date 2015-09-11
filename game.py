@@ -428,11 +428,6 @@ def evaluateAction(cmd, room):
         if gamestate.DEBUG : sys.exit(2)
 
 
-def i(s) :
-    def _(*args,**kwargs) :
-        print s
-    return _
-
 def computeSetOfLegalNounsForRoom(room, legalVerbs):
     """ Yeah this function sucks """
     actions = room['actions']
@@ -461,16 +456,23 @@ def computeSetOfLegalNounsForRoom(room, legalVerbs):
 
 def gameLoop():
 
-    load_content()
+    # load up the rooms
+    content_d = load_content()
+    gamestate.content = content_d
+    gamestate._enemies = content_d["enemies"]
+
+    for room_name,room in content_d["rooms"].items() :
+        room.setdefault("adjacent",{})
+        room.setdefault("actions",{})
+        room.setdefault("uses",[])
+        gamestate.addRoom(room_name,room)
+
+        room["enemy"] = battle.detect_enemy()
 
     while True:
         currentRoom    = gamestate.currentRoom()
         currentActions = currentRoom['actions']
         currentVerbs   = currentActions.keys()
-        if "enemy" not in currentRoom :
-            currentRoom["enemy"] = battle.detect_enemy()
-        elif currentRoom["enemy"].defeated :
-            currentRoom["enemy"] = battle.detect_enemy()
 
         print
         headerBar = "----[%s]%s(%3d/%3d)--" % (
@@ -481,7 +483,12 @@ def gameLoop():
         print
         currentRoom['description'](currentRoom)
         print
-        red("While walking along, you see %s, minding its own business"%currentRoom["enemy"].name[0])
+
+        if currentRoom["enemy"] is not None :
+            red("While walking along, you see %s, minding its own business"%currentRoom["enemy"].name)
+        else :
+            white("The area is quiet and not filled with beasties.")
+
         print
         cyan("You can do things. You can always:  %s" % ', '.join(PERSISTENT_VERBS))
         cyan("In here you can:  %s" % ', '.join(currentVerbs))
@@ -497,7 +504,7 @@ def functify(st) :
     if st.startswith('%') :
         return eval(st[1:])
     else :
-        return i(st)
+        return ident(st)
 
 def deref(d,dk=None) :
 
@@ -537,8 +544,8 @@ def load_content() :
         room.setdefault("uses",[])
         gamestate.addRoom(room_name,room)
 
-    for enemy_id,enemy in content_d["enemies"].items() :
-        battle.add_enemy(enemy_id, enemy)
+    #for enemy_id,enemy in content_d["enemies"].items() :
+    #    battle.add_enemy(enemy_id, enemy)
 
     return content_d
 

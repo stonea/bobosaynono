@@ -1,6 +1,11 @@
 import sys
 import functools
 
+def ident(s) :
+    def _(*args,**kwargs) :
+        print s
+    return _
+
 def prompt(q,opts=['y','n']) :
     resp = "nopenopenope"
     while resp not in opts :
@@ -9,15 +14,15 @@ def prompt(q,opts=['y','n']) :
     return resp
 
 _ascii = {  'blue': '\033[0;34m'
-           , 'yellow': '\033[0;33m'
-           , 'green': '\033[0;32m'
-           , 'red' :  '\033[0;31m'
-           , 'black' :  '\033[0;30m'
-           , 'cyan' :  '\033[0;36m'
-           , 'white' :  '\033[0;37m'
-           , 'purple' :  '\033[0;35m'
-           , 'hiyellow' :  '\033[1;33m'
-           , 'hiwhite' :  '\033[1;37m'
+          , 'yellow': '\033[0;33m'
+          , 'green': '\033[0;32m'
+          , 'red' :  '\033[0;31m'
+          , 'black' :  '\033[0;30m'
+          , 'cyan' :  '\033[0;36m'
+          , 'white' :  '\033[0;37m'
+          , 'purple' :  '\033[0;35m'
+          , 'hiyellow' :  '\033[1;33m'
+          , 'hiwhite' :  '\033[1;37m'
          }
 
 def print_color(color,msg) :

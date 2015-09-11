@@ -1,16 +1,21 @@
-import time, json, sys, art
-from random import randint, sample
+import time, sys, art
+from random import random, randint, sample
 import gamestate
-from util import prompt
+from util import prompt, ident
 
 _enemies = {}
 _enemy_odds_list = []
 
 class Actor(object) :
-    def __init__(self,template) :
-        for k,v in template.iteritems():
-            setattr(self, k, v)
-        self.defeated = False
+
+    def __init__(self,name,actor_d) :
+        self.name = name
+        self.hp = actor_d.get("stats",{}).get("hp",0)
+        self.base_damage = actor_d.get("stats",{}).get("base_damage",0)
+        self.value = actor_d.get("stats",{}).get("value",0)
+        self.location = actor_d.get("location",None)
+        self.article = actor_d.get("article","")
+        self.defeated = self.hp <= 0
 
     def hit(self,damage) :
         self.hp -= damage
@@ -20,13 +25,32 @@ class Actor(object) :
     def attack(self) :
         return self.base_damage+randint(0,3)
 
-def add_enemy(name, enemy):
-    _enemies[name] = enemy
-    _enemy_odds_list.extend([name]*enemy['odds'])
+    def __str__(self) :
+        if self.defeated :
+            return actor_d.get("dead",ident(""))()
+        return actor_d.get("description",ident(""))()
 
 def detect_enemy() :
-    enemy_type = sample(_enemy_odds_list,1)[0]
-    enemy = Actor(_enemies[enemy_type])
+
+    # enemy detected?
+    enemy = None
+    if random() > 0.2 :
+
+        #print gamestate._enemies
+        enemy_odds = []
+        for k,v in gamestate._enemies.items() :
+            #print k, v.keys(), v["appear_prob"]
+            print v.get("location",ident("random"))() == "random"
+            print type(v.get("location",ident("random"))())
+            if v.get("location",ident("random"))() == "random" :
+                print "WHAAAAAT"
+                odds_vec = [k]*int(v.get("appear_prob",0)*100)
+                #print odds_vec
+                enemy_odds.extend(odds_vec)
+        enemy_type = sample(enemy_odds,1)[0]
+        enemy_d = gamestate._enemies[enemy_type]
+        enemy = Actor(enemy_type,enemy_d)
+
     return enemy
 
 def fight(room, noun) :
