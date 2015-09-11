@@ -3,7 +3,7 @@ import functools
 
 def ident(s) :
     def _(*args,**kwargs) :
-        print s
+        return s
     return _
 
 def prompt(q,opts=['y','n']) :

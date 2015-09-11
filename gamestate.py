@@ -1,4 +1,5 @@
 from util import *
+from collections import defaultdict
 
 DEBUG=False
 _gameRooms = {}
@@ -6,7 +7,7 @@ _enemies = {}
 _currentRoomName = 'boboHut'
 _inventory = {'monies':10}
 _suckedIt = 0
-_unMetAchievements = ['gotSword', 'gotDong', 'playCarnival', 'spicyRoom', 'deFuca']
+_unMetAchievements = ['gotSword', 'gotDong', 'playCarnival', 'spicyRoom', 'deFuca', 'hunter']
 _metAchievements = []
 _achievementHints = {
       'gotSword':     "Going alone is dangerous, but perhaps a friend can be found in the caves."
@@ -14,10 +15,21 @@ _achievementHints = {
     , 'gotDong':      "What would make Bobo get the satisfaction he desires."
     , 'spicyRoom':    "SPICYYYYYY! You'll need a normie key and a long, strong, key."
     , 'deFuca':       "Giving a hint here would be pretty wrong-de-fuca."
+    , 'hunter':       "There be beasties about."
 };
 
 
 _achievementsAquired = 0
+
+def numEnemies():
+    enemy_stat_d = defaultdict(int)
+    for name,room in _gameRooms.items() :
+        enemy = room.get("enemy")
+        if enemy :
+            enemy_stat_d["total"] += 1
+            enemy_stat_d["alive"] += not enemy.defeated
+
+    return enemy_stat_d
 
 def currentRoom():
     return _gameRooms[_currentRoomName]

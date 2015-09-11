@@ -14,6 +14,19 @@ import battle
 # Bobo's room
 # /////////////////////////////////////////////////////////////////////////////
 
+def boboHutDescription(room) :
+    msg = [
+          "You are in a room with Bobo. There is nothing else but Bobo."
+        , "There's an open door behind you (south)."
+        , "There is a passage to the north."]
+    if 'beast orb' not in gamestate.inventory() :
+      msg.append("Your trusty beast orb stands in the corner, waiting for your scry.")
+    else :
+      msg.extend(["A strangely phallic pedestal that once held your beast orb,"
+                , "which now lays in your pants, stands in the corner."])
+
+    return "\n".join(msg)
+
 def talkToBobo(gamestate,*args,**kwargs):
     boboStates = ['no', 'yes']
     boboResponses = ['Bobo says %s%s' % (x,x) for x in boboStates]
@@ -81,13 +94,15 @@ def play(gamestate,*args,**kwargs) :
 # /////////////////////////////////////////////////////////////////////////////
 
 def caveDescription(room):
+    msg = []
     if 'manDead' in room:
-        print "You see the carcass of an old man.  It smells funny."
+        msg.append("You see the carcass of an old man.  It smells funny.")
     else:
-        print("You are in a cave, an old man stands in the center.  His beard is long and\n" 
-          "wizardly: sophisticated yet non-intimidating.  To his left and right are two\n" 
-          "fires.  He looks like a friendly chap")
+        msg.extend(["You are in a cave, an old man stands in the center.  His beard is long and" 
+                  , "wizardly: sophisticated yet non-intimidating.  To his left and right are two\n" 
+                  , "fires.  He looks like a friendly chap"])
 
+    return "\n".join(msg)
 
 def talkToMan(gamestate):
     room = gamestate.currentRoom()
@@ -299,6 +314,7 @@ def inventory(room, noun):
         print "   * ", item_str
 
 def use(room, nouns):
+
     nouns = set(nouns)
 
     subject = None
@@ -313,18 +329,19 @@ def use(room, nouns):
 
     if not subject is None:
         nouns.remove(subject)
-    if(len(nouns) > 0):
+    if len(nouns) > 0:
         objecto = list(nouns)[0]
 
     if objecto is None:
-        print "Use %s on what?" % subject
-        return
+        objecto = "none"
 
     didIt = False
     if 'uses' in room:
         if (subject, objecto) in room['uses']:
             didIt = True
             room['uses'][(subject, objecto)](gamestate)
+        else :
+          print "Use %s on what?"%subject
 
     if not didIt:
         print "Don't know how to do that..."
@@ -396,14 +413,25 @@ def parseCommand(command, room):
     legalVerbs = listOfAllVerbs(actions.keys())
     legalNouns = computeSetOfLegalNounsForRoom(room, legalVerbs)
 
-    command = command.lower()
+    command = command.lower().strip()
     verb = 'none'
     nouns = ['none']
-    for word in command.split():
-        if word in legalVerbs:
-            verb = word
-        elif word in legalNouns:
-            nouns.append(word)
+    for word in legalVerbs :
+      if command.startswith(word) :
+        verb = word
+        break
+
+    command = command.replace(verb,"",1).strip()
+    noun_index = []
+    for word in legalNouns :
+        m = re.search(r'\b%s\b'%word,command)
+        if m :
+            command = re.sub(r'\b%s\b'%word,"",command)
+            noun_index.append((m.start(),word))
+
+    noun_index.sort()
+
+    nouns.extend([n for _,n in noun_index])
 
     if len(nouns) > 1:
         nouns.remove('none')
@@ -417,7 +445,9 @@ def evaluateAction(cmd, room):
     noun = nouns[0]
     if verb in actions:
         if noun in actions[verb]:
-            actions[verb][noun](gamestate)
+            ret = actions[verb][noun](gamestate)
+            if ret is not None :
+              print ret
         else:
             print "Don't know how to do that..."
             if gamestate.DEBUG : sys.exit(1)
@@ -481,11 +511,15 @@ def gameLoop():
             , gamestate.achievmentCount(), gamestate.achievmentsPossible())
         hiyellow(headerBar)
         print
-        currentRoom['description'](currentRoom)
+        print currentRoom['description'](currentRoom)
         print
 
-        if currentRoom["enemy"] is not None :
-            red("While walking along, you see %s, minding its own business"%currentRoom["enemy"].name)
+        enemy = currentRoom.get("enemy")
+        if enemy :
+            if enemy.defeated :
+              white(enemy.dead())
+            else :
+              red("While walking along, you see %s, minding its own business"%enemy.name)
         else :
             white("The area is quiet and not filled with beasties.")
 
@@ -537,15 +571,6 @@ def load_content() :
             content_d[k].update(c_d.get(k,{}))
 
     content_d = deref(content_d)
-
-    for room_name,room in content_d["rooms"].items() :
-        room.setdefault("adjacent",{})
-        room.setdefault("actions",{})
-        room.setdefault("uses",[])
-        gamestate.addRoom(room_name,room)
-
-    #for enemy_id,enemy in content_d["enemies"].items() :
-    #    battle.add_enemy(enemy_id, enemy)
 
     return content_d
 

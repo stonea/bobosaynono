@@ -5,16 +5,25 @@ from util import prompt, ident
 
 _enemies = {}
 _enemy_odds_list = []
+_enemy_defaults = {
+  "location": None
+, "hp": 0
+, "base_damage": 0
+, "value": 0
+, "article": ""
+, "art": ident("UNKNOWN")
+, "appear_prob": 0
+, "dead": "Whatever it is, it's dead."
+}
 
 class Actor(object) :
 
     def __init__(self,name,actor_d) :
         self.name = name
-        self.hp = actor_d.get("stats",{}).get("hp",0)
-        self.base_damage = actor_d.get("stats",{}).get("base_damage",0)
-        self.value = actor_d.get("stats",{}).get("value",0)
-        self.location = actor_d.get("location",None)
-        self.article = actor_d.get("article","")
+        for k,v in _enemy_defaults.items() :
+            setattr(self,k,actor_d.get(k,v))
+
+        self.art = eval("art.%s"%self.art())
         self.defeated = self.hp <= 0
 
     def hit(self,damage) :
@@ -36,16 +45,11 @@ def detect_enemy() :
     enemy = None
     if random() > 0.2 :
 
-        #print gamestate._enemies
         enemy_odds = []
         for k,v in gamestate._enemies.items() :
             #print k, v.keys(), v["appear_prob"]
-            print v.get("location",ident("random"))() == "random"
-            print type(v.get("location",ident("random"))())
             if v.get("location",ident("random"))() == "random" :
-                print "WHAAAAAT"
                 odds_vec = [k]*int(v.get("appear_prob",0)*100)
-                #print odds_vec
                 enemy_odds.extend(odds_vec)
         enemy_type = sample(enemy_odds,1)[0]
         enemy_d = gamestate._enemies[enemy_type]
@@ -56,20 +60,26 @@ def detect_enemy() :
 def fight(room, noun) :
     room = gamestate.currentRoom()
 
+    if "enemy" not in room :
+      print ("You brandish a weapon of your choosing, and with a flourish of"
+            "decidedly expert skill, you flail pointlessly in the air. You"
+            "have no doubt been harshly judged by the denizens of your locale.")
+      return
+
     your_stats = {'name': "you", 'hp': 100, 'base_damage': 20}
     bobos_stats = {'name': "Bobo", 'hp': 25, 'base_damage': 5}
 
-    you = Actor(your_stats)
-    bobo = Actor(bobos_stats)
+    you = Actor("you",your_stats)
+    bobo = Actor("Bobo",bobos_stats)
     enemy = room["enemy"]
 
     if enemy.defeated :
-        print "The adage 'beating %s that is already dead' comes to mind"%enemy.name
+        print "The adage 'beating %s %s that is already dead' comes to mind"%(enemy.article(),enemy.name)
         return
 
-    print "Ohkaaaaaaaay, you decide to attack the %s"%enemy.name[0]
+    print "Ohkaaaaaaaay, you decide to attack the %s"%enemy.name
     print
-    print eval("art.%s" % enemy.art[0])
+    print enemy.art
     print
 
     contestants = [you,bobo]
@@ -122,6 +132,32 @@ def fight(room, noun) :
         print "Since he survived somehow, Bobo dances valiantly on the corpse of the enemy!"
 
     print "But this is MAGIC BOBO WORLD AND EVERYTHING IS BACK AS IT WAS"
+
+def takeBeastOrb(gamestate):
+    room = gamestate.currentRoom()
+    gamestate.addToInventory('beast orb')
+    del(gamestate.room('boboHut')['actions']['take']['beast orb'])
+    print "You take the beast orb.  It growls softly and warmly in your robes."
+
+def beastOrb(gamestate) :
+  ce = gamestate.numEnemies()
+  if ce["alive"] == 0 :
+    print "The beast orb vibrates sensuously in your pants, telling you that you"
+    print "have indeed destroyed all of the beasties of this land, and that again"
+    print "the local townsfolk may feel safe and free from burninating. A hero you"
+    print "are indeed!"
+    gamestate.markAchievement('hunter')
+  if ce["alive"] == ce["total"] :
+    print "The beast orb sways to and fro in your robes, anxiously humming and"
+    print "generally seeming uncomfortable. It communes with you to warn you"
+    print "that you tread in a dangerous land indeed, rife with %d beasties"%ce["total"]
+    print "roaming and causing everything from mild annoyances to pain and"
+    print "destruction. Your task is cut out for you! Slay slayer!"
+  else :
+    print "You pull the softly glowing red orb out of your pants and gaze into it."
+    print "From deep in your loins you get a sensation that tells you that you have"
+    print "killed %d of the beasties in this land, but that there are %d more still"%(ce["total"]-ce["alive"],ce["alive"])
+    print "to be slain. Go forth! Slay!"
 
 #if __name__ == '__main__' :
 #    while True :

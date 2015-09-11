@@ -6,6 +6,8 @@ suckit bobo
 suckit bobo
 suckit bobo # wolfdong achievement, receive wolfdong
 go south # hut
+take beast orb
+use beast orb
 go south # outdoors
 look
 go cave # cave

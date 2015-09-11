@@ -1,30 +1,34 @@
 {"rooms" :
     {
         "boboHut" : {
-            "description" : ["You are in a room with Bobo. There is nothing else but Bobo.",
-                            "There's an open door behind you (south). There is a passage to the north."],
-            "adjacent" : {
-                "playpen" : ["north","passage","playpen"],
-                "outside" : ["south","door","behind","backwards","outside"]
-            },
-            "actions" : {
+            "description" : "%boboHutDescription"
+            , "adjacent" : {
+                "playpen" : ["north","passage","playpen"]
+              , "outside" : ["south","door","behind","backwards","outside"]
+            }
+          , "actions" : {
                 "smirk": {
-                    "none" : "Smirk at who?",
-                    "bobo" : "Bobo smirks back at you"
-                },
-                "talk" : {
-                    "none" : "Talk to who?",
-                    "bobo" : "%talkToBobo"
-                },
-                "play" : {
-                    "none" : "With yourself?!",
-                    "bobo" : "%play"
+                    "none" : "Smirk at who?"
+                  , "bobo" : "Bobo smirks back at you"
+                }
+              , "talk" : {
+                    "none" : "Talk to who?"
+                  , "bobo" : "%talkToBobo"
+                }
+              , "play" : {
+                    "none" : "With yourself?!"
+                  , "bobo" : "%play"
+                }
+              , "take" : {
+                    "beast orb" : "%battle.takeBeastOrb"
+                  , "none" : "Take what?"
                 }
             },
             "uses" : [
-                [["ball","bobo"], "Bobo is extremly happy playing with the ball!"],
-                [["monies","bobo"], "Bobo is beyond the kind of material wealth that makes humans happy."],
-                [["sword","bobo"], "Nooooo!!!!! You could never hurt Bobo."]
+                [["ball","bobo"], "Bobo is extremly happy playing with the ball!"]
+              , [["monies","bobo"], "Bobo is beyond the kind of material wealth that makes humans happy."]
+              , [["sword","bobo"], "Nooooo!!!!! You could never hurt Bobo."]
+              , [["beast orb","none"], "%battle.beastOrb"]
             ]
         },
         "playpen" : {
@@ -34,12 +38,12 @@
             },
             "actions" : {
                 "bounce" : {
-                    "none": "Bounce what?",
-                    "ball": "The ball bounces: what fun!"
+                    "none": "Bounce what?"
+                  , "ball": "The ball bounces: what fun!"
                  },
                  "take": {
-                    "none": "Take what?",
-                    "ball": "%takeBall"
+                    "none": "Take what?"
+                  , "ball": "%takeBall"
                  }
             }, 
             "uses" : [
