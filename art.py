@@ -9,11 +9,6 @@ r"""
           '.,,/'.,,mrf      """
 KITTY_WITTY_CREDIT = "Art found at: <http://user.xmission.com/~emailbox/ascii_cats.htm>"
 
-WUMPUS = KITTY_WITTY
-LADYBUG = KITTY_WITTY
-BARREL = KITTY_WITTY
-
-
 CHTHULUH = \
 r"""
    ________                 
@@ -58,5 +53,17 @@ r"""
    |      |     
    |      |     
    `------'     """
-BARREL_CREDIT = "Art hand-crafted by BoBo"
+BARREL_CREDIT = "Art hand-crafted by BoBo at his typewriter"
+
+UNKNOWN = \
+r"""
+  ? ,----.     
+   /      \ ?  
+   \      /    
+ ?      .'     
+       /    ?  
+  ?   |        
+      |  ?     
+      o        """
+UNKNOWN_CREDIT = "Art hand-crafted by BoBo at his typewriter"
 

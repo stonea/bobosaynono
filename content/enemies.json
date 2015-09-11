@@ -1,0 +1,60 @@
+{
+    "enemies" : {
+        "wumpus" : {
+            "description" : "A snuggly wuggly wumpus wants to eat you so hard right now."
+          , "dead" : "The wumpus lies dead, and will munchus on lunchus made from your haunchus no more."
+          , "article" : "a"
+          , "hp" : 100
+          , "base_damage" : 15
+          , "value" : 10
+          , "location" : "random"
+          , "appear_prob" : 0.3
+          , "art" : "WUMPUS"
+        }
+      , "kitty witty" : {
+            "description" : "An adowabew wittwe kitty witty wants to eat you so hawd wight now."
+          , "dead" : "The dead carcass of an adowabew wittwe kitty witty wies off to the side, what a tewibew sight."
+          , "article" : "a"
+          , "hp" : 150
+          , "base_damage" : 3
+          , "value" : 3
+          , "location" : "random"
+          , "appear_prob" : 0.5
+          , "art" : "KITTY_WITTY"
+        }
+      , "Chthulhu" : {
+            "description" : "The Ancient One, gargantuan and indescribably horrible, glides silently about on ten thousand tenticles."
+          , "dead" : "The hulking mass of Chthulhu dominates the background of the landscape, surrounded by chanting occultists and hysterically screaming nether-witches. It's pretty sweet."
+          , "article" : ""
+          , "hp" : 1000000
+          , "base_damage" : 1000000
+          , "value" : 1000000
+          , "location" : "random"
+          , "appear_prob" : 0
+          , "art" : "CHTHULUH"
+        }
+      , "exploding barrel" : {
+            "description" : "An exploding barrel, red with a yellow explody symbol on it, skips to and fro whistling an 'appy tune."
+          , "dead" : "A black crater is all that remains of the once-joyful exploding barrel"
+          , "article" : "an"
+          , "hp" : 26
+          , "base_damage" : 1000000
+          , "value" : 5
+          , "location" : "random"
+          , "appear_prob" : 0.1
+          , "art" : "BARREL"
+        }
+      , "lady bug" : {
+            "description" : "A fierce and aggressive lady bug. She's got a tiny, adorable knife, and she looks like she knows how to use it."
+          , "dead" : "Despite all her rage, the ladybug is now just a splat on the ground."
+          , "article" : "an"
+          , "hp" : 5
+          , "base_damage" : 0
+          , "value" : 1
+          , "location" : "random"
+          , "appear_prob" : 0.1
+          , "art" : "LADYBUG"
+        }
+
+    }
+}
